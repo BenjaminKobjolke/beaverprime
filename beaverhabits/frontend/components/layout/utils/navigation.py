@@ -27,6 +27,7 @@ def get_page_title(path: str, default_title: str | None = None) -> str:
     elif "/export" in path:
         return "Export"
     elif "/habits/" in path:
-        return "Habit Details"
+        # Use the provided habit name if available, otherwise fall back to "Habit Details"
+        return default_title or "Habit Details"
     else:
         return default_title or "Beaver Prime"

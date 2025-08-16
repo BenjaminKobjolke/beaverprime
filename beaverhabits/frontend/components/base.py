@@ -7,10 +7,10 @@ def link(text: str, target: str):
         "dark:text-white  no-underline hover:no-underline"
     )
 
-def menu_header(title: str, target: str):
+def menu_header(title: str, target: str, size: str = "text-2xl"):
     link = ui.link(title, target=target)
     link.classes(
-        "text-semibold text-2xl dark:text-white no-underline hover:no-underline"
+        f"text-semibold {size} dark:text-white no-underline hover:no-underline"
     )
     return link
 

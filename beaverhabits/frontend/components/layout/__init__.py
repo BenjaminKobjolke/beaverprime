@@ -37,14 +37,16 @@ async def layout(
         logger.info(f"Rendering page: {path}")
         
         # Added md:justify-between for spacing on medium+ screens, removed justify-between to prevent wrapping on small screens
-        with ui.row().classes("w-full items-center justify-between pt-2 pr-2"): 
+        with ui.row().classes("w-full items-center justify-between pt-2 px-4"): 
             # --- Left Element ---
             left_container = ui.row().classes("items-center") 
             with left_container:
                 # Show title on all pages except main /gui page
                 if path != settings.GUI_MOUNT_PATH:
                     page_title = get_page_title(path, title)
-                    menu_header(page_title, target=settings.GUI_MOUNT_PATH)
+                    # Use smaller font size for habit pages to accommodate long habit names
+                    font_size = "text-lg" if "/habits/" in path else "text-2xl"
+                    menu_header(page_title, target=settings.GUI_MOUNT_PATH, size=font_size)
                 
                 # Add list selector if not on lists, add, or order pages AND on main page
                 # (Title takes precedence on other pages based on above logic)
