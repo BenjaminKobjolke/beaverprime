@@ -37,9 +37,9 @@ async def layout(
         logger.info(f"Rendering page: {path}")
         
         # Added md:justify-between for spacing on medium+ screens, removed justify-between to prevent wrapping on small screens
-        with ui.row().classes("w-full items-center justify-between pt-2 px-4"): 
+        with ui.row().classes("w-full items-start justify-between pt-2 px-4"): 
             # --- Left Element ---
-            left_container = ui.row().classes("items-center") 
+            left_container = ui.row().classes("items-center flex-1 pr-2") 
             with left_container:
                 # Show title on all pages except main /gui page
                 if path != settings.GUI_MOUNT_PATH:
@@ -103,7 +103,7 @@ async def layout(
                     # Removed ui.space() from here
 
             # --- Right Element ---
-            right_container = ui.row().classes("items-center")
+            right_container = ui.row().classes("items-center flex-shrink-0")
             with right_container:
                 if with_menu:
                     with menu_icon_button(icons.MENU):
