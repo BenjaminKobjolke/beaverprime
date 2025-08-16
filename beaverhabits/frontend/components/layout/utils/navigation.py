@@ -29,4 +29,4 @@ def get_page_title(path: str, default_title: str | None = None) -> str:
     elif "/habits/" in path:
         return "Habit Details"
     else:
-        return default_title or "Beaver Habits"
+        return default_title or "Beaver Prime"

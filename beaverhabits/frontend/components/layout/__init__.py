@@ -25,7 +25,7 @@ async def layout(
     days: list[datetime.date] | None = None # Added days parameter
 ):
     """Base layout for all pages."""
-    title = title or "Beaver Habits"
+    title = title or "Beaver Prime"
 
     with ui.column().classes("w-full") as c:
         # Standard headers and scripts
