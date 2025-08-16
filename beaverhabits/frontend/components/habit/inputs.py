@@ -69,10 +69,9 @@ class HabitDateInput(ui.date):
         self.props(f'events="{events}" event-color="teal"')
 
     @property
-    async def _tick_days(self) -> list[str]:
-        # Get completed days
-        records = await get_habit_checks(self.habit.id, self.habit.user_id)
-        ticked_days = [r.day.strftime(DAY_MASK) for r in records if r.done]
+    def _tick_days(self) -> list[str]:
+        # Get completed days from eagerly loaded checked_records
+        ticked_days = [r.day.strftime(DAY_MASK) for r in self.habit.checked_records if r.done]
         return [*ticked_days, TODAY]
 
     async def _async_task(self, e: events.ValueChangeEventArguments):
@@ -99,4 +98,4 @@ class HabitDateInput(ui.date):
 
         self.props(f"default-year-month={day.strftime(MONTH_MASK)}")
         await habit_tick(self.habit, day, bool(value))
-        self.value = await self._tick_days
+        self.value = self._tick_days

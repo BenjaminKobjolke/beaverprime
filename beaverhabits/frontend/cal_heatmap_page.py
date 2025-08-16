@@ -26,11 +26,16 @@ async def heatmap_page(today: datetime.date, habit: Habit, user: User | None = N
         start_date = min(completed_days) if completed_days else today
 
         with ui.column():
-            while today > start_date:
+            # Show heatmap for each year from today back to the first record
+            current_year = today.year
+            start_year = start_date.year if completed_days else today.year
+            
+            for year in range(current_year, start_year - 1, -1):
+                year_date = today.replace(year=year)
                 with ui.card().classes("p-3 gap-0 no-shadow items-center"):
-                    ui.label(today.strftime("%Y")).classes("text-base")
+                    ui.label(str(year)).classes("text-base")
 
                     habit_calendar = CalendarHeatmap.build(
-                        today, WEEKS_TO_DISPLAY, settings.FIRST_DAY_OF_WEEK
+                        year_date, WEEKS_TO_DISPLAY, settings.FIRST_DAY_OF_WEEK
                     )
                     await habit_heat_map(habit, habit_calendar)

@@ -41,7 +41,6 @@ def card(link: str | None = None, padding: float = 3):
     with ui.card().classes("gap-0 no-shadow items-center") as card:
         card.classes(f"p-{padding}")
         card.classes("w-full break-inside-avoid h-fit")
-        card.style("max-width: 350px")
         if link:
             card.classes("cursor-pointer")
             card.on("click", lambda: redirect(link))
@@ -64,33 +63,36 @@ async def habit_page(today: datetime.date, habit: Habit):
     # https://tailwindcss.com/docs/responsive-design#container-size-reference
     masony = "md:grid-cols-2" if notes else ""
 
-    with grid(masony):
-        habit_calendar = CalendarHeatmap.build(today, WEEKS_TO_DISPLAY, calendar.MONDAY)
-        target = f"{habit.id}/heatmap"
+    # Add container with padding and max-width for better mobile experience
+    with ui.element('div').classes('w-full px-4 mx-auto max-w-2xl'):
+        with grid(masony):
+            habit_calendar = CalendarHeatmap.build(today, WEEKS_TO_DISPLAY, calendar.MONDAY)
+            target = f"habits/{habit.id}/heatmap"
 
-        with grid():
-            with card():
-                HabitDateInput(today, habit)
-
-            with card():
-                card_title("Last 3 Months", target)
-                ui.space().classes("h-1")
-                await habit_heat_map(habit, habit_calendar)
-
-            with card():
-                card_title("History", target)
-                habit_history(today, completed_days)
-
-        if notes:
             with grid():
-                with card(padding=2):
-                    card_title("Notes", "#").tooltip(
-                        "Press and hold to add notes/descriptions"
-                    )
-                    habit_notes(notes)
+                with card():
+                    HabitDateInput(today, habit)
 
-        with card(target, padding=0.5):
-            ui.icon("more_horiz", size="1.5em")
+                with card():
+                    card_title("Last 3 Months", target)
+                    ui.space().classes("h-1")
+                    with ui.element('div').classes('overflow-x-auto w-full'):
+                        await habit_heat_map(habit, habit_calendar)
+
+                with card():
+                    card_title("History", target)
+                    await habit_history(habit, today)
+
+            if notes:
+                with grid():
+                    with card(padding=2):
+                        card_title("Notes", "#").tooltip(
+                            "Press and hold to add notes/descriptions"
+                        )
+                        habit_notes(notes)
+
+            with card(target, padding=0.5):
+                ui.icon("more_horiz", size="1.5em")
 
 
 async def habit_page_ui(today: datetime.date, habit: Habit, user: User | None = None):

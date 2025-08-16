@@ -99,7 +99,9 @@ async def create_habit(user: User, name: str, list_id: Optional[int] = None, ord
 
 async def get_user_habits(user: User, list_id: Optional[int] = None) -> List[Habit]:
     async with get_async_session_context() as session:
-        stmt = select(Habit).where(
+        stmt = select(Habit).options(
+            joinedload(Habit.checked_records)
+        ).where(
             Habit.user_id == user.id,
             Habit.deleted == False
         )
@@ -110,7 +112,7 @@ async def get_user_habits(user: User, list_id: Optional[int] = None) -> List[Hab
             )
         stmt = stmt.order_by(Habit.order)
         result = await session.execute(stmt)
-        return list(result.scalars())
+        return list(result.unique().scalars())
 
 async def update_habit(habit_id: int, user_id: UUID, name: Optional[str] = None, 
                       order: Optional[int] = None, list_id: Optional[int] = None,
