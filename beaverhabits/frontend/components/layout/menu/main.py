@@ -11,10 +11,10 @@ def menu_component() -> None:
         show_export = True
 
         path = context.client.page.path
-        if "add" in path:
+        compat_menu("Add Habits", lambda: redirect("add"))
+        compat_menu("Edit Habits", lambda: redirect("edit"))
+        if "edit" in path:
             compat_menu("Reorder", lambda: redirect("order"))
-        else:
-            compat_menu("Configure habits", lambda: redirect("add"))
         ui.separator()
 
         compat_menu("Configure lists", lambda: redirect("lists"))

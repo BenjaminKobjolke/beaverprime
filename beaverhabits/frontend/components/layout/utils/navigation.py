@@ -17,7 +17,9 @@ def get_page_title(path: str, default_title: str | None = None) -> str:
         return default_title or "Beaver Habits"
         
     if "/add" in path:
-        return "Add Habit"
+        return "Add Habits"
+    elif "/edit" in path:
+        return "Edit Habits"
     elif "/lists" in path:
         return "Configure Lists"
     elif "/order" in path:

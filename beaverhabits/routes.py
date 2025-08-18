@@ -20,6 +20,7 @@ from .app.dependencies import current_active_user
 from .app.users import UserManager, get_user_manager # Added UserManager, get_user_manager
 from .configs import settings
 from .frontend.add_page import add_page_ui
+from .frontend.edit_page import edit_page_ui
 from .frontend.cal_heatmap_page import heatmap_page
 from .frontend.habit_page import habit_page_ui
 from .frontend.index_page import index_page_ui
@@ -100,9 +101,13 @@ async def index_page(
 
 @ui.page("/gui/add")
 async def add_page(user: User = Depends(current_active_user)) -> None:
-    # Get all habits without filtering by list
+    await add_page_ui(user)
+
+@ui.page("/gui/edit")
+async def edit_page(user: User = Depends(current_active_user)) -> None:
+    # Get all habits for editing
     habits = await get_user_habits(user)
-    await add_page_ui(habits, user)
+    await edit_page_ui(habits, user)
 
 
 @ui.page("/gui/order")

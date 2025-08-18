@@ -10,7 +10,7 @@ from .habit.badges import HabitTotalBadge, IndexBadge
 from .habit.buttons import HabitEditButton, HabitDeleteButton, HabitAddButton, HabitSaveButton
 from .habit.cards import HabitOrderCard
 from .habit.checkbox import HabitCheckBox, CalendarCheckBox, HabitStarCheckbox, habit_tick, note_tick
-from .habit.inputs import WeeklyGoalInput, HabitNameInput, HabitDateInput
+from .habit.inputs import WeeklyGoalInput, HabitNameInput, HabitDateInput, MultiPartNameInput
 
 from .calendar.heatmap import CalendarHeatmap, habit_heat_map
 from .calendar.history import habit_history
@@ -40,6 +40,7 @@ __all__ = [
     'WeeklyGoalInput',
     'HabitNameInput',
     'HabitDateInput',
+    'MultiPartNameInput',
     
     # Calendar
     'CalendarHeatmap',

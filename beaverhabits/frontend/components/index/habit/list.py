@@ -87,13 +87,23 @@ async def render_habit_card(habit: Habit, days: list[datetime.date], row_classes
     priority = await calculate_habit_priority(habit, is_completed)
     last_week_complete = await get_last_week_completion(habit, today)
     
+    # Extract filter letters from habit name parts split by ||
+    filter_letters = []
+    parts = habit.name.split('||')
+    for part in parts:
+        part = part.strip()
+        if part:
+            filter_letters.append(part[0].upper())
+    filter_letters_str = ','.join(filter_letters)
+    
     card = ui.card().classes(row_classes + " w-full habit-card").classes("shadow-none")
-    # Add data attributes for sorting
+    # Add data attributes for sorting and filtering
     card.props(
         f'data-habit-id="{habit.id}" '
         f'data-priority="{priority}" '
         f'data-starred="{int(habit.star)}" '
         f'data-name="{habit.name}" '
+        f'data-filter-letters="{filter_letters_str}" '
         f'data-order="{habit.order}"'
     )
     with card:

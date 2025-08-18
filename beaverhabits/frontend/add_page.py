@@ -8,6 +8,7 @@ from beaverhabits.frontend.components import (
     HabitSaveButton,
     HabitStarCheckbox,
     WeeklyGoalInput,
+    MultiPartNameInput,
 )
 from beaverhabits.frontend.layout import layout
 from beaverhabits.sql.models import Habit, HabitList
@@ -15,71 +16,19 @@ from beaverhabits.app.crud import get_user_lists, get_user_habits, create_habit,
 from beaverhabits.app.db import User
 
 
-@ui.refreshable
-async def add_ui(habits: list[Habit], lists: list[HabitList], user: User):
-    # Filter out deleted habits
-    active_habits = [h for h in habits if not h.deleted]
-    active_habits.sort(key=lambda h: h.order)
-
-    for item in active_habits:
-        with ui.card().classes("w-full p-4 mx-0 habit-edit-card") as card:
-            # Add habit ID and name to the card for scrolling and filtering
-            card.props(f'data-habit-id="{item.id}" data-habit-name="{item.name}"')
-            
-            with ui.column().classes("w-full gap-4"):
-                # First line: Name (full width)
-                with ui.row().classes("w-full"):
-                    name_input = HabitNameInput(item, None)
-                    name_input.classes("w-full")
-
-                # Second line: Weekly Goal
-                with ui.row().classes("items-center gap-2"):
-                    weekly_goal = WeeklyGoalInput(item, None)
-                    ui.label("times per week")
-
-                # Third line: List Selection (full width)
-                list_options = [{"label": "No List", "value": None}] + [
-                    {"label": list.name, "value": list.id} for list in lists if not list.deleted
-                ]
-                name_to_id = {"No List": None}
-                name_to_id.update({opt["label"]: opt["value"] for opt in list_options[1:]})
-                options = list(name_to_id.keys())
-                current_name = next(
-                    (name for name, id in name_to_id.items() if id == item.list_id),
-                    "No List"
-                )
-                list_select = ui.select(
-                    options=options,
-                    value=current_name,
-                    on_change=lambda e, h=item: (setattr(h, 'list_id', name_to_id[e.value]))
-                ).props('dense outlined options-dense').classes("w-full")
-                list_select.bind_value_from(lambda: next(
-                    (name for name, id in name_to_id.items() if id == item.list_id),
-                    "No List"
-                ))
-
-                # Fourth line: Save button on left, Star and Delete on right
-                with ui.row().classes("w-full justify-between items-center"):
-                    # Left side - Save button
-                    save = HabitSaveButton(item, weekly_goal, name_input, add_ui.refresh)
-                    
-                    # Right side - Star and Delete buttons
-                    with ui.row().classes("gap-2 items-center"):
-                        star = HabitStarCheckbox(item, add_ui.refresh)
-                        delete = HabitDeleteButton(item, add_ui.refresh)
 
 
-async def add_page_ui(habits: list[Habit], user: User):
+async def add_page_ui(user: User):
     async with layout(user=user):
         with ui.column().classes("w-full gap-4 pb-64 px-4"):
-            # Add new habit form at the top
+            # Add new habit form
             with ui.card().classes("w-full p-4"):
                 with ui.column().classes("w-full gap-4"):
-                    # Name input
-                    name_input = ui.input(
-                        label="Habit Name",
-                        validation={"Required": lambda value: bool(value.strip())},
-                    ).classes("w-full")
+                    ui.label("Add New Habit").classes("text-lg font-semibold")
+                    
+                    # Multi-part name input
+                    ui.label("Habit Name").classes("text-sm font-medium")
+                    name_input = MultiPartNameInput()
 
                     # Weekly goal input
                     with ui.row().classes("items-center gap-2"):
@@ -109,38 +58,16 @@ async def add_page_ui(habits: list[Habit], user: User):
                     with ui.row().classes("justify-end"):
                         ui.button("Add Habit", on_click=lambda: add_habit(
                             user,
-                            name_input.value,
+                            name_input.get_value(),
                             name_to_id[list_select.value],
-                            int(goal_input.value),
-                            add_ui.refresh
+                            int(goal_input.value)
                         )).props("flat")
 
-            async def add_habit(user, name, list_id, weekly_goal, refresh):
+            async def add_habit(user, name, list_id, weekly_goal):
                 if not name or not name.strip():
                     return
                 habit = await create_habit(user, name, list_id)
                 if habit:
                     await update_habit(habit.id, habit.user_id, weekly_goal=weekly_goal)
-                    # Reload the page to show the new habit and reset form
+                    # Clear the form by reloading the page
                     ui.navigate.reload()
-            
-            # Get all lists for the user
-            lists = await get_user_lists(user)
-            
-            # Filter input for existing habits
-            if habits:  # Only show filter if there are habits
-                with ui.card().classes("w-full p-4"):
-                    with ui.column().classes("w-full gap-2"):
-                        ui.label("Filter Existing Habits").classes("text-lg font-semibold")
-                        with ui.row().classes("w-full items-center gap-2"):
-                            filter_input = ui.input(
-                                placeholder="Type to filter habits (e.g., 'abdo' for abdominal)...",
-                                on_change=lambda e: ui.run_javascript(
-                                    f'window.HabitEditFilter.filterHabits("{e.value}");'
-                                )
-                            ).props('clearable outlined dense').classes("flex-grow")
-                            filter_input.props('id="habit-filter-input"')
-                        ui.label("").props('id="habit-filter-count"').classes("text-sm text-gray-600")
-            
-            # Existing habits section
-            await add_ui(habits, lists, user)

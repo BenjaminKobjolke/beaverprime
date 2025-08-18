@@ -32,11 +32,30 @@ window.HabitFilter = (function() {
         // Filter cards
         const cards = document.querySelectorAll('.habit-card');
         cards.forEach(card => {
-            const name = card.getAttribute('data-name').toUpperCase();
-            if (!currentFilter || name.startsWith(currentFilter)) {
+            if (!currentFilter) {
+                // No filter, show all
                 card.style.display = '';
+                return;
+            }
+
+            // Check if any part of the habit name (split by ||) starts with the filter letter
+            const filterLetters = card.getAttribute('data-filter-letters');
+            if (filterLetters) {
+                // Use the pre-computed filter letters
+                const letters = filterLetters.split(',');
+                if (letters.includes(currentFilter)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
             } else {
-                card.style.display = 'none';
+                // Fallback to checking the full name (for backward compatibility)
+                const name = card.getAttribute('data-name').toUpperCase();
+                if (name.startsWith(currentFilter)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
             }
         });
     }

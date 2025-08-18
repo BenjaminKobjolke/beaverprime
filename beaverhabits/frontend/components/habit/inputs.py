@@ -43,6 +43,103 @@ class HabitNameInput(ui.input):
     def get_value(self) -> str:
         return self.value
 
+class MultiPartNameInput(ui.column):
+    def __init__(self, initial_value: str = "", habit: Optional[Habit] = None, refresh: Optional[Callable] = None) -> None:
+        super().__init__()
+        self.habit = habit
+        self.refresh = refresh
+        self.input_fields = []
+        self.classes("w-full gap-2")
+        
+        # Parse initial value (split by ||)
+        if initial_value and initial_value.strip():
+            parts = [part.strip() for part in initial_value.split('||') if part.strip()]
+        else:
+            parts = [""]  # Start with one empty field
+        
+        # Create input fields for each part
+        for i, part in enumerate(parts):
+            self._add_input_field(part, i == 0)  # First field cannot be deleted
+    
+    def _add_input_field(self, value: str = "", is_first: bool = False):
+        """Add a new input field with add/remove buttons."""
+        with ui.row().classes("w-full items-center gap-2"):
+            # Input field
+            input_field = ui.input(
+                value=value,
+                placeholder=f"Habit part {len(self.input_fields) + 1}" if len(self.input_fields) > 0 else "Habit name",
+                validation=self._validate_field
+            ).props("dense hide-bottom-space").classes("flex-grow")
+            
+            # Add button (always present)
+            ui.button(
+                "+",
+                on_click=lambda: self._add_new_field()
+            ).props("flat fab-mini").classes("text-green-600")
+            
+            # Remove button (only if not the first field or if there are multiple fields)
+            if not is_first or len(self.input_fields) > 0:
+                ui.button(
+                    "-",
+                    on_click=lambda idx=len(self.input_fields): self._remove_field(idx)
+                ).props("flat fab-mini").classes("text-red-600")
+            else:
+                # Add invisible button to keep alignment (same size as the - button)
+                ui.button("-").props("flat fab-mini").classes("invisible")
+            
+            self.input_fields.append(input_field)
+    
+    def _add_new_field(self):
+        """Add a new empty input field."""
+        self._add_input_field()
+    
+    def _remove_field(self, index: int):
+        """Remove an input field by index."""
+        if len(self.input_fields) <= 1:
+            return  # Don't remove if it's the only field
+        
+        # Remove the field from our tracking
+        if 0 <= index < len(self.input_fields):
+            # Clear the entire row that contains this input
+            self.clear()
+            self.input_fields.clear()
+            
+            # Rebuild all fields except the one being removed
+            current_values = self.get_parts()
+            current_values.pop(index)
+            
+            # If no values left, add one empty field
+            if not current_values:
+                current_values = [""]
+            
+            # Recreate all fields
+            for i, value in enumerate(current_values):
+                self._add_input_field(value, i == 0)
+    
+    def _validate_field(self, value: str) -> Optional[str]:
+        """Validate individual field."""
+        if value and len(value) > 130:
+            return "Too long"
+        return None
+    
+    def get_parts(self) -> list[str]:
+        """Get all non-empty parts."""
+        return [field.value.strip() for field in self.input_fields if field.value.strip()]
+    
+    def get_value(self) -> str:
+        """Get the combined value with || separator."""
+        parts = self.get_parts()
+        if not parts:
+            return ""
+        return " || ".join(parts)
+    
+    def validate(self) -> Optional[str]:
+        """Validate the entire input (at least one non-empty part)."""
+        parts = self.get_parts()
+        if not parts:
+            return "At least one habit name part is required"
+        return None
+
 class HabitDateInput(ui.date):
     def __init__(
         self,
