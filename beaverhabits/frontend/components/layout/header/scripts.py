@@ -32,8 +32,9 @@ def add_javascript_files() -> None:
     ui.add_head_html('<script src="/statics/js/habit-ui.js"></script>')
     ui.add_head_html('<script src="/statics/js/habit-progress.js"></script>')
     
-    # Add filter script last as it depends on other scripts
+    # Add filter scripts last as they depend on other scripts
     ui.add_head_html('<script src="/statics/js/habit-filter.js"></script>')
+    ui.add_head_html('<script src="/statics/js/habit-edit-filter.js"></script>')
     
     # Add connection status monitoring script
     ui.add_head_html('''

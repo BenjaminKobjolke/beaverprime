@@ -22,9 +22,9 @@ async def add_ui(habits: list[Habit], lists: list[HabitList], user: User):
     active_habits.sort(key=lambda h: h.order)
 
     for item in active_habits:
-        with ui.card().classes("w-full p-4 mx-0") as card:
-            # Add habit ID to the card for scrolling
-            card.props(f'data-habit-id="{item.id}"')
+        with ui.card().classes("w-full p-4 mx-0 habit-edit-card") as card:
+            # Add habit ID and name to the card for scrolling and filtering
+            card.props(f'data-habit-id="{item.id}" data-habit-name="{item.name}"')
             
             with ui.column().classes("w-full gap-4"):
                 # First line: Name (full width)
@@ -126,6 +126,21 @@ async def add_page_ui(habits: list[Habit], user: User):
             
             # Get all lists for the user
             lists = await get_user_lists(user)
+            
+            # Filter input for existing habits
+            if habits:  # Only show filter if there are habits
+                with ui.card().classes("w-full p-4"):
+                    with ui.column().classes("w-full gap-2"):
+                        ui.label("Filter Existing Habits").classes("text-lg font-semibold")
+                        with ui.row().classes("w-full items-center gap-2"):
+                            filter_input = ui.input(
+                                placeholder="Type to filter habits (e.g., 'abdo' for abdominal)...",
+                                on_change=lambda e: ui.run_javascript(
+                                    f'window.HabitEditFilter.filterHabits("{e.value}");'
+                                )
+                            ).props('clearable outlined dense').classes("flex-grow")
+                            filter_input.props('id="habit-filter-input"')
+                        ui.label("").props('id="habit-filter-count"').classes("text-sm text-gray-600")
             
             # Existing habits section
             await add_ui(habits, lists, user)
