@@ -65,9 +65,17 @@ async def add_page_ui(user: User):
 
             async def add_habit(user, name, list_id, weekly_goal):
                 if not name or not name.strip():
+                    ui.notify("Please enter a habit name", color="negative")
                     return
-                habit = await create_habit(user, name, list_id)
-                if habit:
-                    await update_habit(habit.id, habit.user_id, weekly_goal=weekly_goal)
-                    # Clear the form by reloading the page
-                    ui.navigate.reload()
+                
+                try:
+                    habit = await create_habit(user, name, list_id)
+                    if habit:
+                        await update_habit(habit.id, habit.user_id, weekly_goal=weekly_goal)
+                        ui.notify(f"Successfully added habit: {name}", color="positive", timeout=3000)
+                        # Clear the form by reloading the page after a short delay
+                        ui.timer(1.5, lambda: ui.navigate.reload(), once=True)
+                    else:
+                        ui.notify("Failed to create habit", color="negative")
+                except Exception as e:
+                    ui.notify(f"Error creating habit: {str(e)}", color="negative")
