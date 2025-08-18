@@ -36,10 +36,10 @@ async def layout(
         path = context.client.page.path
         logger.info(f"Rendering page: {path}")
         
-        # Added md:justify-between for spacing on medium+ screens, removed justify-between to prevent wrapping on small screens
-        with ui.row().classes("w-full items-start justify-between pt-2 px-4"): 
+        # Use relative positioning to enable absolute positioning of children on small screens
+        with ui.row().classes("w-full items-center justify-between pt-2 px-4 relative"): 
             # --- Left Element ---
-            left_container = ui.row().classes("items-center flex-1 pr-2") 
+            left_container = ui.row().classes("items-center flex-shrink-0") 
             with left_container:
                 # Show title on all pages except main /gui page
                 if path != settings.GUI_MOUNT_PATH:
@@ -94,8 +94,8 @@ async def layout(
                     await list_selector(lists, current_list_id, path)
                 # else: Left container remains empty on index page if no user/lists
 
-            # --- Center Element (centers content, does not grow) ---
-            center_container = ui.row().classes("items-center justify-center") # Removed flex-grow
+            # --- Center Element (centers content between left and right) ---
+            center_container = ui.row().classes("flex-1 items-center justify-center")
             with center_container:
                 # Add week navigation only on the main page and if days are provided
                 if path == settings.GUI_MOUNT_PATH and days:
