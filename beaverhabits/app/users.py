@@ -14,6 +14,7 @@ from passlib.context import CryptContext
 
 from beaverhabits.configs import settings
 from beaverhabits.logging import logger
+from beaverhabits.services.email import email_service
 
 from .db import User, get_user_db, get_async_session
 
@@ -27,18 +28,38 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
         logger.info(f"User {user.id} has registered.")
+        
+        if settings.REQUIRE_VERIFICATION:
+            # Automatically request verification for the new user
+            try:
+                # Generate verification token and send email automatically
+                verification_token = await self.request_verify(user, request)
+                logger.info(f"Verification email automatically sent to {user.email}")
+            except Exception as e:
+                logger.error(f"Failed to automatically send verification email to {user.email}: {str(e)}")
 
     async def on_after_forgot_password(
         self, user: User, token: str, request: Optional[Request] = None
     ):
         logger.info(f"User {user.id} has forgot their password. Reset token: {token}")
+        
+        try:
+            await email_service.send_password_reset_email(user.email, token)
+            logger.info(f"Password reset email sent to {user.email}")
+        except Exception as e:
+            logger.error(f"Failed to send password reset email to {user.email}: {str(e)}")
 
     async def on_after_request_verify(
         self, user: User, token: str, request: Optional[Request] = None
     ):
-        logger.info(
-            f"Verification requested for user {user.id}. Verification token: {token}"
-        )
+        logger.info(f"Verification requested for user {user.id}. Verification token: {token}")
+        
+        try:
+            await email_service.send_verification_email(user.email, token)
+            logger.info(f"Verification email sent to {user.email}")
+        except Exception as e:
+            logger.error(f"Failed to send verification email to {user.email}: {str(e)}")
+
 
 
 async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):

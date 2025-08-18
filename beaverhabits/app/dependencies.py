@@ -65,3 +65,27 @@ async def current_active_user(
         detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+
+async def current_active_user_optional(
+    credentials: Annotated[Optional[str], Depends(get_bearer_token)],
+    trusted_header_email: Annotated[Optional[str], Depends(get_trusted_header_email)],
+    trusted_local_email: Annotated[Optional[str], Depends(get_trusted_local_email)],
+) -> Optional[User]:
+    """Optional version of current_active_user that returns None instead of raising an exception."""
+    try:
+        if trusted_header_email:
+            return await user_get_by_email(trusted_header_email)
+
+        if trusted_local_email:
+            user = await user_get_by_email(trusted_local_email)
+            if not user:
+                user = await views.register_user(trusted_local_email)
+            return user
+
+        if credentials:
+            return await user_from_token(credentials)
+            
+        return None
+    except Exception:
+        return None

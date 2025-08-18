@@ -16,7 +16,7 @@ from .app.auth import (
 )
 from .app.crud import get_user_count, get_user_habits, get_user_lists
 from .app.db import User
-from .app.dependencies import current_active_user
+from .app.dependencies import current_active_user, current_active_user_optional
 from .app.users import UserManager, get_user_manager # Added UserManager, get_user_manager
 from .configs import settings
 from .frontend.add_page import add_page_ui
@@ -26,9 +26,12 @@ from .frontend.habit_page import habit_page_ui
 from .frontend.index_page import index_page_ui
 from .frontend.lists_page import lists_page_ui
 from .frontend.change_password_page import change_password_ui
+from .frontend.verify_email_page import verify_email_page_ui
+from .frontend.forgot_password_page import forgot_password_page_ui, password_reset_success_page_ui
+from .frontend.reset_password_page import reset_password_page_ui
 from .utils import get_display_days, get_user_today_date, reset_week_offset, is_navigating, set_navigating
 
-UNRESTRICTED_PAGE_ROUTES = ("/login", "/register")
+UNRESTRICTED_PAGE_ROUTES = ("/login", "/register", "/gui/verify-email", "/gui/verify", "/gui/forgot-password", "/gui/reset-password")
 
 
 def get_current_list_id() -> int | str | None:
@@ -207,6 +210,61 @@ async def show_change_password_page(user: User = Depends(current_active_user), u
     await change_password_ui(user_manager=user_manager, user_id=user.id)
 
 
+@ui.page("/gui/verify-email", title="Verify Email")
+async def verify_email_page(request: Request, user: Optional[User] = Depends(current_active_user_optional)):
+    """Email verification status page."""
+    # Check for verification status from query parameters
+    status = request.query_params.get("status", "pending")
+    
+    await verify_email_page_ui(user=user, verification_status=status)
+
+
+@ui.page("/gui/forgot-password", title="Forgot Password")
+async def forgot_password_page():
+    """Forgot password request page."""
+    await forgot_password_page_ui()
+
+
+@ui.page("/gui/reset-password", title="Reset Password")
+async def reset_password_page(request: Request):
+    """Password reset page."""
+    await reset_password_page_ui(request)
+
+
+@ui.page("/gui/verify", title="Email Verification")
+async def gui_verify_email(request: Request):
+    """GUI verification handler that processes the verification token."""
+    import httpx
+    
+    # Get token from query parameters
+    token = request.query_params.get("token")
+    
+    if not token:
+        # No token provided - redirect to error page
+        ui.navigate.to("/gui/verify-email?status=error")
+        return
+    
+    try:
+        # Call the FastAPI-Users verify endpoint internally
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{settings.ROOT_URL}/auth/verify",
+                json={"token": token}
+            )
+            
+            if response.status_code == 200:
+                # Verification successful
+                ui.navigate.to("/gui/verify-email?status=success")
+            else:
+                # Verification failed (expired, invalid token, etc.)
+                logger.warning(f"Email verification failed with status {response.status_code}: {response.text}")
+                ui.navigate.to("/gui/verify-email?status=error")
+                
+    except Exception as e:
+        logger.error(f"Error during email verification: {str(e)}")
+        ui.navigate.to("/gui/verify-email?status=error")
+
+
 @ui.page("/login")
 async def login_page() -> Optional[RedirectResponse]:
     custom_header()
@@ -221,6 +279,12 @@ async def login_page() -> Optional[RedirectResponse]:
         user = await user_authenticate(email=email.value, password=password.value)
         token = user and await user_create_token(user)
         if token is not None:
+            # Check if email verification is required and user is not verified
+            if settings.REQUIRE_VERIFICATION and user and not user.is_verified:
+                ui.notify("Please verify your email address before logging in. Check your inbox for the verification email.", color="warning", timeout=8000)
+                ui.navigate.to("/gui/verify-email")
+                return
+            
             app.storage.user.update({"auth_token": token})
             if remember_me.value:
                 app.storage.user.update({"remembered_email": email.value, "remember_me": True})
@@ -243,6 +307,10 @@ async def login_page() -> Optional[RedirectResponse]:
         with ui.element("div").classes("flex mt-4 justify-between items-center"):
             ui.button("Continue", on_click=try_login).props('padding="xs lg"')
 
+        # Forgot password link
+        with ui.row().classes("w-full justify-center mt-3"):
+            ui.link("Forgot your password?", target="/gui/forgot-password").classes("text-sm text-blue-500 hover:underline")
+
         if not await get_user_count() >= settings.MAX_USER_COUNT > 0:
             ui.separator()
             with ui.row():
@@ -260,11 +328,17 @@ async def register_page():
         try:
             await views.validate_max_user_count()
             user = await views.register_user(email=email.value, password=password.value)
-            await views.login_user(user)
+            
+            if settings.REQUIRE_VERIFICATION:
+                # Don't log user in immediately - redirect to verification page with confirmation
+                ui.notify("Registration successful! Please check your email for a verification link.", color="positive", timeout=8000)
+                ui.navigate.to("/gui/verify-email?status=pending")
+            else:
+                # If verification not required, log user in as before
+                await views.login_user(user)
+                ui.navigate.to(app.storage.user.get("referrer_path", "/"))
         except Exception as e:
             ui.notify(str(e), color="negative")
-        else:
-            ui.navigate.to(app.storage.user.get("referrer_path", "/"))
 
     await views.validate_max_user_count()
     with ui.card().classes("absolute-center shadow-none w-96"):

@@ -19,6 +19,7 @@ dependencies = [
     "loguru>=0.7.3",
     "cachetools>=5.5.1",
     "passlib[bcrypt]>=1.7.4",
+    "httpx>=0.24.0",
 ]
 description = ""
 readme = "README.md"

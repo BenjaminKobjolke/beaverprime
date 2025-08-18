@@ -25,6 +25,17 @@ db_password = db_config.get('password', '')
 db_password_part = f":{db_password}@" if db_password else "@"
 DATABASE_URL = f"mysql+aiomysql://{db_user}{db_password_part}{db_host}:{db_port}/{db_name}"
 
+# Email configuration
+try:
+    email_config = dict(config['email']) if 'email' in config else {}
+except KeyError:
+    email_config = {}
+
+try:
+    app_config = dict(config['app']) if 'app' in config else {}
+except KeyError:
+    app_config = {}
+
 class Settings(BaseSettings):
     ENV: str = "dev"
     DEBUG: bool = False
@@ -46,6 +57,21 @@ class Settings(BaseSettings):
     TRUSTED_EMAIL_HEADER: str = ""
     TRUSTED_LOCAL_EMAIL: str = ""
     SKIP_OLD_PASSWORD_CHECK_ON_CHANGE: bool = True # Added for temporarily skipping old password check
+
+    # Email Configuration
+    SMTP_HOST: str = email_config.get('smtp_host', 'localhost')
+    SMTP_PORT: int = int(email_config.get('smtp_port', '587'))
+    SMTP_USER: str = email_config.get('smtp_user', '')
+    SMTP_PASSWORD: str = email_config.get('smtp_password', '')
+    SMTP_USE_TLS: bool = str(email_config.get('smtp_use_tls', 'true')).lower() == 'true'
+    FROM_EMAIL: str = email_config.get('from_email', 'noreply@example.com')
+    FROM_NAME: str = email_config.get('from_name', 'Beaver Habits')
+
+    # App Configuration  
+    ROOT_URL: str = app_config.get('root_url', 'http://localhost:8000')
+    REQUIRE_VERIFICATION: bool = str(app_config.get('require_verification', 'true')).lower() == 'true'
+    VERIFICATION_SUBJECT: str = app_config.get('verification_subject', 'Please verify your account')
+    RESET_SUBJECT: str = app_config.get('reset_subject', 'Reset your password')
 
     # Customization
     FIRST_DAY_OF_WEEK: int = calendar.MONDAY

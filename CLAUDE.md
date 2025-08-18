@@ -64,6 +64,45 @@ NICEGUI_STORAGE_PATH=.user\.nicegui  # Storage path for NiceGUI data
 SENTRY_DSN=<your-sentry-dsn>  # For error tracking
 ```
 
+### Email Configuration
+
+Email verification and password reset functionality requires SMTP configuration in `settings.ini`:
+
+```ini
+[email]
+# SMTP server configuration
+smtp_host = smtp.gmail.com
+smtp_port = 587
+smtp_user = your-email@gmail.com
+smtp_password = your-app-password
+smtp_use_tls = true
+from_email = Beaver Habits <noreply@example.com>
+from_name = Beaver Habits
+
+[app]
+# Root URL for generating verification and reset links
+root_url = http://localhost:8000
+# Whether email verification is required for new users
+require_verification = true
+# Email template settings
+verification_subject = Please verify your Beaver Habits account
+reset_subject = Reset your Beaver Habits password
+```
+
+**Email Features:**
+- **User Registration**: New users receive verification emails
+- **Email Verification**: Required before login (configurable)
+- **Password Reset**: Users can request password reset via email
+- **Development Mode**: Emails logged to console when SMTP not configured
+
+**Available Routes:**
+- `/gui/verify-email` - Email verification status and instructions
+- `/gui/forgot-password` - Password reset request form  
+- `/gui/reset-password` - Password reset form with token
+- `/auth/verify?token=<token>` - API endpoint for email verification
+- `/auth/forgot-password` - API endpoint for password reset requests
+- `/auth/reset-password` - API endpoint for password reset
+
 ## Architecture
 
 ### Application Initialization Flow
@@ -81,8 +120,10 @@ SENTRY_DSN=<your-sentry-dsn>  # For error tracking
   - `auth.py`: Authentication handlers (`user_authenticate`, `user_create_token`)
   - `crud.py`: Database operations (habits, lists, completions)
   - `db.py`: SQLAlchemy models and database setup
-  - `users.py`: User management with FastAPI-Users
-  - `dependencies.py`: FastAPI dependencies (`current_active_user`)
+  - `users.py`: User management with FastAPI-Users (includes email sending hooks)
+  - `dependencies.py`: FastAPI dependencies (`current_active_user`, `current_active_user_optional`)
+- `beaverhabits/services/`: Business services
+  - `email.py`: Email service for verification and password reset emails
 - `beaverhabits/api/`: RESTful API endpoints
   - `routes/habits.py`: Habit completion endpoints
   - `routes/lists.py`: List management
@@ -95,6 +136,9 @@ SENTRY_DSN=<your-sentry-dsn>  # For error tracking
   - `habit_page.py`: Individual habit view with calendar heatmap
   - `lists_page.py`: List management UI
   - `change_password_page.py`: Password change functionality
+  - `verify_email_page.py`: Email verification status and instructions
+  - `forgot_password_page.py`: Password reset request form
+  - `reset_password_page.py`: Password reset form with token
   - `components/`: Reusable UI components
     - `layout/`: Page layout components (header, menu, navigation)
     - `index/`: Index page components (habit list, letter filter, week navigation)
