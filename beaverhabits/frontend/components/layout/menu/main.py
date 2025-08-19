@@ -28,13 +28,11 @@ def menu_component() -> None:
         if show_import:
             compat_menu(t("navigation.import"), lambda: redirect("import"))
 
-        # Adding Settings and Change Password link here
+        # Adding Settings link here
         ui.separator() # Separator before user-specific actions
         
         # Settings menu item (navigates to settings page)
         settings_menu_item()
-        
-        compat_menu(t("navigation.change_password"), lambda: ui.navigate.to("/gui/change-password")) # Use ui.navigate.to for internal links
         ui.separator()
 
         compat_menu(t("navigation.logout"), lambda: user_logout() and ui.navigate.to("/login"))

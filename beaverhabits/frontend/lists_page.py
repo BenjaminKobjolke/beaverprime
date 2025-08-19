@@ -14,7 +14,7 @@ async def lists_ui(lists: list[HabitList], user: User | None = None):
     """Lists UI component."""
     with ui.column().classes("w-full gap-4"):
         # Add new list form
-        with ui.card().classes("w-full"):
+        with ui.card().classes("w-full p-4"):
             with grid(columns=8):
                 new_list_input = ui.input(t("lists.new_list")).classes("col-span-6")
                 
@@ -37,7 +37,7 @@ async def lists_ui(lists: list[HabitList], user: User | None = None):
         active_lists.sort(key=lambda l: l.order)
         
         for list_item in active_lists:
-            with ui.card().classes("w-full"):
+            with ui.card().classes("w-full p-4"):
                 with grid(columns=8):
                     # List name input
                     edit_input = ui.input(value=list_item.name).classes("col-span-8")
@@ -97,4 +97,5 @@ async def lists_ui(lists: list[HabitList], user: User | None = None):
 async def lists_page_ui(lists: list[HabitList], user: User | None = None):
     """Lists management page."""
     async with layout(t("navigation.configure_lists"), user=user):
-        await lists_ui(lists, user)
+        with ui.column().classes("w-full gap-4 pb-64 px-2 md:px-4"):
+            await lists_ui(lists, user)

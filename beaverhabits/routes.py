@@ -190,9 +190,9 @@ async def gui_import(user: User = Depends(current_active_user)) -> None:
 
 
 @ui.page("/gui/settings", title="Settings")
-async def show_settings_page(user: User = Depends(current_active_user)):
+async def show_settings_page(user: User = Depends(current_active_user), user_manager: UserManager = Depends(get_user_manager)):
     """Settings page."""
-    await settings_page_ui(user=user)
+    await settings_page_ui(user=user, user_manager=user_manager)
 
 
 @ui.page("/gui/change-password", title="Change Password")
