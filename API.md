@@ -1,6 +1,6 @@
-# Beaver Habits API Documentation
+# BeaverPrime API Documentation
 
-This document describes the available API endpoints for the Beaver Habits application.
+This document describes the available API endpoints for the BeaverPrime application.
 
 ## Authentication
 

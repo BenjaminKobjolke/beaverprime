@@ -94,7 +94,7 @@
   },
   "verification": {
     "success_title": "E-Mail erfolgreich bestätigt!",
-    "success_message": "Deine E-Mail-Adresse wurde bestätigt. Du kannst jetzt alle Funktionen von Beaver Habits nutzen.",
+    "success_message": "Deine E-Mail-Adresse wurde bestätigt. Du kannst jetzt alle Funktionen von BeaverPrime nutzen.",
     "continue_to_app": "Zur App weiter",
     "failed_title": "Verifizierung fehlgeschlagen",
     "failed_message": "Der Verifizierungslink ist ungültig oder abgelaufen. Bitte fordere eine neue Verifizierungs-E-Mail an.",

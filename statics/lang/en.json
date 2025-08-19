@@ -95,7 +95,7 @@
   },
   "verification": {
     "success_title": "Email Verified Successfully!",
-    "success_message": "Your email address has been verified. You can now use all features of Beaver Habits.",
+    "success_message": "Your email address has been verified. You can now use all features of BeaverPrime.",
     "continue_to_app": "Continue to App",
     "failed_title": "Verification Failed",
     "failed_message": "The verification link is invalid or has expired. Please request a new verification email.",
