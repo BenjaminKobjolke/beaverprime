@@ -219,3 +219,41 @@ async def get_user_count() -> int:
         result = await session.execute(stmt)
         user_count = len(result.all())
         return user_count
+
+
+async def delete_all_user_habits(user: User) -> int:
+    """Delete all habits for a user by marking them as deleted."""
+    async with get_async_session_context() as session:
+        from sqlalchemy import update
+        
+        # Update all user habits to set deleted=True
+        stmt = update(Habit).where(
+            Habit.user_id == user.id,
+            Habit.deleted == False
+        ).values(deleted=True)
+        
+        result = await session.execute(stmt)
+        await session.commit()
+        
+        count = result.rowcount
+        logger.info(f"[CRUD] Marked {count} habits as deleted for user {user.id}")
+        return count
+
+
+async def delete_all_user_lists(user: User) -> int:
+    """Delete all lists for a user by marking them as deleted."""
+    async with get_async_session_context() as session:
+        from sqlalchemy import update
+        
+        # Update all user lists to set deleted=True
+        stmt = update(HabitList).where(
+            HabitList.user_id == user.id,
+            HabitList.deleted == False
+        ).values(deleted=True)
+        
+        result = await session.execute(stmt)
+        await session.commit()
+        
+        count = result.rowcount
+        logger.info(f"[CRUD] Marked {count} lists as deleted for user {user.id}")
+        return count

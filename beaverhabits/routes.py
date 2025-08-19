@@ -181,7 +181,7 @@ async def gui_export(user: User = Depends(current_active_user)) -> None:
     if not habits:
         ui.notify(t("export.no_habits"), color="negative")
         return
-    await views.export_user_habits(habits, user.email)
+    await views.export_user_habits(habits, user, user.email)
 
 
 @ui.page("/gui/import")

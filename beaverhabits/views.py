@@ -78,7 +78,7 @@ async def login_user(user: User) -> None:
     app.storage.user.update({"auth_token": token})
 
 
-async def export_user_habits(habits: TypeList[Habit], filename: str) -> None:
+async def export_user_habits(habits: TypeList[Habit], user: User, filename: str) -> None:
     """Export user habits."""
     # Convert habits to JSON-friendly format
     data = {
@@ -106,8 +106,8 @@ async def export_user_habits(habits: TypeList[Habit], filename: str) -> None:
         }
         data["habits"].append(habit_data)
     
-    # Add lists
-    lists = await get_user_lists(habits[0].user if habits else None)
+    # Add lists using the passed user object
+    lists = await get_user_lists(user)
     data["lists"] = [
         {
             "id": list.id,
@@ -117,4 +117,6 @@ async def export_user_habits(habits: TypeList[Habit], filename: str) -> None:
         for list in lists
     ]
     
-    ui.download(json.dumps(data, indent=2), filename=f"{filename}.json")
+    # Create JSON content and trigger download
+    json_content = json.dumps(data, indent=2)
+    ui.download(bytes(json_content, encoding='utf-8'), f"{filename}.json")

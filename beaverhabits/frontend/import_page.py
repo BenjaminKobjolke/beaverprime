@@ -116,7 +116,7 @@ async def import_ui_page(user: User | None = None):
 
             # Import new habits
             for habit_data in new_habits:
-                habit = await create_habit(user, list_id, habit_data["name"])
+                habit = await create_habit(user, habit_data["name"], list_id)
                 # Import records
                 for record in habit_data["records"]:
                     day = datetime.strptime(record["day"], "%Y-%m-%d").date()
