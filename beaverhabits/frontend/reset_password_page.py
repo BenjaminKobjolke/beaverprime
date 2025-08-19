@@ -179,8 +179,8 @@ async def reset_password_page_ui(request: Request):
                     ui.notify(t("reset_password.passwords_no_match"), color="negative")
                     return
                 
+                submit_btn.disable()
                 submit_btn.props("loading")
-                submit_btn.props("disable")
                 
                 try:
                     # Call the FastAPI-Users reset password endpoint
@@ -239,8 +239,8 @@ async def reset_password_page_ui(request: Request):
                     ui.notify(t("reset_password.error_occurred"), color="negative")
                     
                 finally:
+                    submit_btn.enable()
                     submit_btn.props(remove="loading")
-                    submit_btn.props(remove="disable")
             
             # Back to login link
             with ui.row().classes("w-full justify-center mt-6"):

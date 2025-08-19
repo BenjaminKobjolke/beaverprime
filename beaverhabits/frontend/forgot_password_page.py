@@ -45,8 +45,8 @@ async def forgot_password_page_ui():
                     return
                 
                 email = email_input.value.strip()
+                submit_btn.disable()
                 submit_btn.props("loading")
-                submit_btn.props("disable")
                 
                 try:
                     # Call the FastAPI-Users forgot password endpoint
@@ -80,8 +80,8 @@ async def forgot_password_page_ui():
                     ui.notify(t("password_reset.send_error"), color="negative")
                     
                 finally:
+                    submit_btn.enable()
                     submit_btn.props(remove="loading")
-                    submit_btn.props(remove="disable")
             
             # Back to login link
             with ui.row().classes("w-full justify-center mt-6"):
