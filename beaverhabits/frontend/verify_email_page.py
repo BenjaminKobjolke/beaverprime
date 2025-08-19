@@ -10,6 +10,77 @@ from beaverhabits.logging import logger
 from beaverhabits.services.i18n import t
 
 
+def try_open_native_app():
+    """Attempt to open the native Android app using beaverprime:// URL scheme.
+    
+    Falls back to the web app if the native app is not available.
+    """
+    ui.run_javascript('''
+        // Function to try opening native app
+        function tryOpenNativeApp() {
+            const nativeAppUrl = 'beaverprime://verified';
+            const fallbackUrl = '/gui';
+            const fallbackDelay = 2000; // 2 seconds
+            
+            // Show status message
+            const statusElement = document.getElementById('native-app-status');
+            if (statusElement) {
+                statusElement.style.display = 'block';
+                statusElement.textContent = 'Checking for native app...';
+            }
+            
+            // Create a hidden iframe to attempt the URL scheme
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = nativeAppUrl;
+            document.body.appendChild(iframe);
+            
+            // Set up fallback timer
+            const fallbackTimer = setTimeout(() => {
+                // Update status message
+                if (statusElement) {
+                    statusElement.textContent = 'Opening web app...';
+                }
+                // Clean up
+                document.body.removeChild(iframe);
+                // Redirect to web app
+                setTimeout(() => window.location.href = fallbackUrl, 300);
+            }, fallbackDelay);
+            
+            // For modern browsers, we can also try using window.location
+            // This approach works better on some Android browsers
+            try {
+                window.location.href = nativeAppUrl;
+                
+                // If we're still here after a short delay, the app probably didn't open
+                setTimeout(() => {
+                    // Check if we're still on the same page
+                    if (document.hasFocus()) {
+                        clearTimeout(fallbackTimer);
+                        if (statusElement) {
+                            statusElement.textContent = 'Opening web app...';
+                        }
+                        document.body.removeChild(iframe);
+                        setTimeout(() => window.location.href = fallbackUrl, 300);
+                    }
+                }, 500);
+                
+            } catch (e) {
+                // If there's an error, fall back immediately
+                clearTimeout(fallbackTimer);
+                if (statusElement) {
+                    statusElement.textContent = 'Opening web app...';
+                }
+                document.body.removeChild(iframe);
+                setTimeout(() => window.location.href = fallbackUrl, 300);
+            }
+        }
+        
+        // Add a small delay to ensure the page is fully loaded
+        setTimeout(tryOpenNativeApp, 100);
+    ''')
+
+
 async def verify_email_page_ui(user: User = None, verification_status: str = "pending"):
     from beaverhabits.services.i18n import init_user_language
     from beaverhabits.frontend.components import auth_language_switcher
@@ -32,7 +103,10 @@ async def verify_email_page_ui(user: User = None, verification_status: str = "pe
                     ui.label(t("verification.success_message")).classes("text-center text-gray-600 mt-2")
                     
                     with ui.row().classes("w-full justify-center mt-6"):
-                        ui.button(t("verification.continue_to_app"), on_click=lambda: redirect("")).props("flat").classes("bg-green-500 text-white px-8 py-3 rounded-lg")
+                        continue_btn = ui.button(t("verification.continue_to_app"), on_click=lambda: try_open_native_app()).props("flat").classes("bg-green-500 text-white px-8 py-3 rounded-lg")
+                    
+                    # Add a small note about native app detection
+                    ui.label("Checking for native app...").classes("text-xs text-gray-500 text-center mt-2").style("display: none").props('id="native-app-status"')
                 
                 elif verification_status == "error":
                     ui.icon("error", color="negative", size="4rem").classes("mx-auto")
