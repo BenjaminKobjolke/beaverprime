@@ -41,7 +41,7 @@ async def layout(
         logger.info(f"Rendering page: {path}")
         
         # Use relative positioning to enable absolute positioning of children on small screens
-        with ui.row().classes("w-full items-center justify-between pt-2 px-4 relative"): 
+        with ui.row().classes("w-full items-center justify-between pt-2 px-2 md:px-4 relative"): 
             # --- Left Element ---
             left_container = ui.row().classes("items-center flex-shrink-0") 
             with left_container:

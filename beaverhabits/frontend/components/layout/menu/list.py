@@ -33,7 +33,7 @@ def handle_list_change(e, name_to_id: Dict[str, Optional[int | str]], path: str)
 @ui.refreshable
 async def list_selector(lists: TypeList[HabitList], current_list_id: int | str | None = None, path: str = "") -> None:
     """Dropdown for selecting current list."""
-    with ui.row().classes("items-center gap-2 pt-2 pl-2"):
+    with ui.row().classes("items-center gap-2"):
         # Create name-to-id mapping, starting with "All" and "No List"
         name_to_id: Dict[str, Optional[int | str]] = {"All": "all", "No List": None}
         name_to_id.update({list.name: list.id for list in lists if not list.deleted})
