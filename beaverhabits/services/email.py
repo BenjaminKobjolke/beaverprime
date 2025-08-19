@@ -7,6 +7,7 @@ import asyncio
 
 from beaverhabits.configs import settings
 from beaverhabits.logging import logger
+from beaverhabits.services.i18n import t
 
 
 class EmailService:
@@ -72,37 +73,37 @@ class EmailService:
         html_body = f"""
         <html>
         <body>
-            <h2>Welcome to {self.from_name}!</h2>
-            <p>Thank you for registering with {self.from_name}. To complete your registration and start tracking your habits, please verify your email address by clicking the link below:</p>
+            <h2>{t("email.verification.welcome_title", app_name=self.from_name)}</h2>
+            <p>{t("email.verification.welcome_message", app_name=self.from_name)}</p>
             
-            <p><a href="{verification_url}" style="background-color: #4CAF50; color: white; padding: 14px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">Verify Email Address</a></p>
+            <p><a href="{verification_url}" style="background-color: #4CAF50; color: white; padding: 14px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">{t("email.verification.verify_button")}</a></p>
             
-            <p>Or copy and paste this link into your browser:</p>
+            <p>{t("email.verification.copy_link_instruction")}</p>
             <p><code>{verification_url}</code></p>
             
-            <p>This verification link will expire in 24 hours for security purposes.</p>
+            <p>{t("email.verification.expiry_notice")}</p>
             
-            <p>If you didn't create an account with {self.from_name}, you can safely ignore this email.</p>
+            <p>{t("email.verification.ignore_message", app_name=self.from_name)}</p>
             
-            <p>Happy habit tracking!</p>
-            <p>The {self.from_name} Team</p>
+            <p>{t("email.verification.closing_message")}</p>
+            <p>{t("email.verification.signature", app_name=self.from_name)}</p>
         </body>
         </html>
         """
         
         text_body = f"""
-        Welcome to {self.from_name}!
+        {t("email.verification.welcome_title", app_name=self.from_name)}
         
-        Thank you for registering with {self.from_name}. To complete your registration and start tracking your habits, please verify your email address by visiting this link:
+        {t("email.verification.welcome_message", app_name=self.from_name)}
         
         {verification_url}
         
-        This verification link will expire in 24 hours for security purposes.
+        {t("email.verification.expiry_notice")}
         
-        If you didn't create an account with {self.from_name}, you can safely ignore this email.
+        {t("email.verification.ignore_message", app_name=self.from_name)}
         
-        Happy habit tracking!
-        The {self.from_name} Team
+        {t("email.verification.closing_message")}
+        {t("email.verification.signature", app_name=self.from_name)}
         """
         
         await self.send_email(to_email, settings.VERIFICATION_SUBJECT, html_body, text_body)
@@ -114,40 +115,40 @@ class EmailService:
         html_body = f"""
         <html>
         <body>
-            <h2>Password Reset Request</h2>
-            <p>We received a request to reset your password for your {self.from_name} account.</p>
+            <h2>{t("email.password_reset.title")}</h2>
+            <p>{t("email.password_reset.message", app_name=self.from_name)}</p>
             
-            <p>Click the link below to reset your password:</p>
+            <p>{t("email.password_reset.instruction")}</p>
             
-            <p><a href="{reset_url}" style="background-color: #2196F3; color: white; padding: 14px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">Reset Password</a></p>
+            <p><a href="{reset_url}" style="background-color: #2196F3; color: white; padding: 14px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">{t("email.password_reset.reset_button")}</a></p>
             
-            <p>Or copy and paste this link into your browser:</p>
+            <p>{t("email.verification.copy_link_instruction")}</p>
             <p><code>{reset_url}</code></p>
             
-            <p>This password reset link will expire in 1 hour for security purposes.</p>
+            <p>{t("email.password_reset.expiry_notice")}</p>
             
-            <p><strong>If you didn't request a password reset, you can safely ignore this email.</strong> Your password will remain unchanged.</p>
+            <p><strong>{t("email.password_reset.ignore_message")}</strong></p>
             
-            <p>For security reasons, this request was logged with your IP address and timestamp.</p>
+            <p>{t("email.password_reset.security_notice")}</p>
             
-            <p>The {self.from_name} Team</p>
+            <p>{t("email.verification.signature", app_name=self.from_name)}</p>
         </body>
         </html>
         """
         
         text_body = f"""
-        Password Reset Request
+        {t("email.password_reset.title")}
         
-        We received a request to reset your password for your {self.from_name} account.
+        {t("email.password_reset.message", app_name=self.from_name)}
         
-        Visit this link to reset your password:
+        {t("email.password_reset.visit_link")}
         {reset_url}
         
-        This password reset link will expire in 1 hour for security purposes.
+        {t("email.password_reset.expiry_notice")}
         
-        If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+        {t("email.password_reset.ignore_message")}
         
-        The {self.from_name} Team
+        {t("email.verification.signature", app_name=self.from_name)}
         """
         
         await self.send_email(to_email, settings.RESET_SUBJECT, html_body, text_body)

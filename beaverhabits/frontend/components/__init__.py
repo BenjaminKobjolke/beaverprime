@@ -15,6 +15,7 @@ from .habit.inputs import WeeklyGoalInput, HabitNameInput, HabitDateInput, Multi
 from .calendar.heatmap import CalendarHeatmap, habit_heat_map
 from .calendar.history import habit_history
 from .calendar.notes import habit_notes
+from .auth_language_switcher import auth_language_switcher
 
 __all__ = [
     # Base
@@ -47,4 +48,7 @@ __all__ = [
     'habit_heat_map',
     'habit_history',
     'habit_notes',
+    
+    # Auth
+    'auth_language_switcher',
 ]

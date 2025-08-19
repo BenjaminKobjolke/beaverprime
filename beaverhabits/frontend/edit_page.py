@@ -14,6 +14,7 @@ from beaverhabits.frontend.layout import layout
 from beaverhabits.sql.models import Habit, HabitList
 from beaverhabits.app.crud import get_user_lists, get_user_habits, create_habit, update_habit
 from beaverhabits.app.db import User
+from beaverhabits.services.i18n import t
 
 
 @ui.refreshable
@@ -34,18 +35,19 @@ async def edit_ui(habits: list[Habit], lists: list[HabitList], user: User):
                 # Second line: Weekly Goal
                 with ui.row().classes("items-center gap-2"):
                     weekly_goal = WeeklyGoalInput(item, None)
-                    ui.label("times per week")
+                    ui.label(t("habits.times_per_week"))
 
                 # Third line: List Selection (full width)
-                list_options = [{"label": "No List", "value": None}] + [
+                no_list_label = t("habits.no_list")
+                list_options = [{"label": no_list_label, "value": None}] + [
                     {"label": list.name, "value": list.id} for list in lists if not list.deleted
                 ]
-                name_to_id = {"No List": None}
+                name_to_id = {no_list_label: None}
                 name_to_id.update({opt["label"]: opt["value"] for opt in list_options[1:]})
                 options = list(name_to_id.keys())
                 current_name = next(
                     (name for name, id in name_to_id.items() if id == item.list_id),
-                    "No List"
+                    no_list_label
                 )
                 list_select = ui.select(
                     options=options,
@@ -54,7 +56,7 @@ async def edit_ui(habits: list[Habit], lists: list[HabitList], user: User):
                 ).props('dense outlined options-dense').classes("w-full")
                 list_select.bind_value_from(lambda: next(
                     (name for name, id in name_to_id.items() if id == item.list_id),
-                    "No List"
+                    no_list_label
                 ))
 
                 # Fourth line: Save button on left, Star and Delete on right
@@ -78,10 +80,10 @@ async def edit_page_ui(habits: list[Habit], user: User):
             if habits:  # Only show filter if there are habits
                 with ui.card().classes("w-full p-4"):
                     with ui.column().classes("w-full gap-2"):
-                        ui.label("Filter Habits").classes("text-lg font-semibold")
+                        ui.label(t("habits.filter_habits")).classes("text-lg font-semibold")
                         with ui.row().classes("w-full items-center gap-2"):
                             filter_input = ui.input(
-                                placeholder="Type to filter habits (e.g., 'abdo' for abdominal)...",
+                                placeholder=t("habits.filter_placeholder"),
                                 on_change=lambda e: ui.run_javascript(
                                     f'window.HabitEditFilter.filterHabits("{e.value}");'
                                 )

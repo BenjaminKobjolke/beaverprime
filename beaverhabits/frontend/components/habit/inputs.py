@@ -8,6 +8,7 @@ from beaverhabits.logging import logger
 from beaverhabits.sql.models import Habit
 from beaverhabits.app.crud import update_habit, get_habit_checks
 from .checkbox import habit_tick
+from beaverhabits.services.i18n import t
 
 TODAY = "today"
 DAY_MASK = "%Y-%m-%d"
@@ -22,7 +23,7 @@ class WeeklyGoalInput(ui.number):
 
     def _validate(self, value: str) -> Optional[str]:
         if value is None or value < 0 or value > 7:
-            return "Value must be between 0 and 7"
+            return t("habits.weekly_goal_range")
 
     def get_value(self) -> int:
         return self.value
@@ -36,9 +37,9 @@ class HabitNameInput(ui.input):
 
     def _validate(self, value: str) -> Optional[str]:
         if not value:
-            return "Name is required"
+            return t("habits.name_required")
         if len(value) > 130:
-            return "Too long"
+            return t("habits.name_too_long")
 
     def get_value(self) -> str:
         return self.value
@@ -67,7 +68,7 @@ class MultiPartNameInput(ui.column):
             # Input field
             input_field = ui.input(
                 value=value,
-                placeholder=f"Habit part {len(self.input_fields) + 1}" if len(self.input_fields) > 0 else "Habit name",
+                placeholder=t("habits.habit_part_placeholder", part=len(self.input_fields) + 1) if len(self.input_fields) > 0 else t("habits.habit_name_placeholder"),
                 validation=self._validate_field
             ).props("dense hide-bottom-space").classes("flex-grow")
             
@@ -119,7 +120,7 @@ class MultiPartNameInput(ui.column):
     def _validate_field(self, value: str) -> Optional[str]:
         """Validate individual field."""
         if value and len(value) > 130:
-            return "Too long"
+            return t("habits.name_too_long")
         return None
     
     def get_parts(self) -> list[str]:
@@ -137,7 +138,7 @@ class MultiPartNameInput(ui.column):
         """Validate the entire input (at least one non-empty part)."""
         parts = self.get_parts()
         if not parts:
-            return "At least one habit name part is required"
+            return t("habits.at_least_one_part_required")
         return None
 
 class HabitDateInput(ui.date):

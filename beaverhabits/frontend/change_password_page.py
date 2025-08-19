@@ -7,10 +7,11 @@ from fastapi_users.exceptions import InvalidPasswordException # To catch specifi
 import uuid # For user_id type hint
 from beaverhabits.frontend.layout import layout # Import the main layout
 from beaverhabits.app.db import User # Import User for type hinting if needed by layout
+from beaverhabits.services.i18n import t
 
 async def change_password_ui(user_manager: UserManager, user_id: uuid.UUID | None = None): # Add user_manager, change user_id type
     if user_id is None:
-        ui.notify("User session not found. Cannot display page.", color="negative")
+        ui.notify(t("auth.session_not_found"), color="negative")
         # Optionally redirect or show a more prominent error
         return
 
@@ -20,7 +21,7 @@ async def change_password_ui(user_manager: UserManager, user_id: uuid.UUID | Non
     # or if user is not found (though a valid user_id should exist if this page is reached via protected route)
     current_user: User | None = await user_manager.get(user_id)
     if current_user is None:
-        ui.notify("User not found. Cannot display page.", color="negative")
+        ui.notify(t("auth.user_not_found"), color="negative")
         return
 
     async with layout(user=current_user): # Apply the layout, removed title="Change Password"
@@ -32,15 +33,15 @@ async def change_password_ui(user_manager: UserManager, user_id: uuid.UUID | Non
             confirm_pw = confirm_password_input.value
 
             if not old_pw or not new_pw or not confirm_pw:
-                ui.notify("All fields are required.", color="negative")
+                ui.notify(t("auth.all_fields_required"), color="negative")
                 return
 
             if new_pw != confirm_pw:
-                ui.notify("New passwords do not match.", color="negative")
+                ui.notify(t("auth.passwords_no_match"), color="negative")
                 return
 
             if user_id is None: # This check is technically redundant due to earlier check, but harmless
-                ui.notify("User session not found. Cannot change password.", color="negative")
+                ui.notify(t("auth.session_not_found_change_password"), color="negative")
                 return
 
             try:
@@ -48,26 +49,26 @@ async def change_password_ui(user_manager: UserManager, user_id: uuid.UUID | Non
                 success = await change_user_password(user_manager=user_manager, user_id=user_id, old_password=old_pw, new_password=new_pw)
 
                 if success:
-                    ui.notify("Password changed successfully!", color="positive")
+                    ui.notify(t("auth.password_changed_successfully"), color="positive")
                     old_password_input.set_value("")
                     new_password_input.set_value("")
                     confirm_password_input.set_value("")
                 else:
-                    ui.notify("Failed to change password. An unexpected error occurred.", color="negative")
+                    ui.notify(t("auth.password_change_failed"), color="negative")
 
             except InvalidPasswordException:
-                ui.notify("Incorrect old password. Please try again.", color="negative")
+                ui.notify(t("auth.incorrect_old_password"), color="negative")
             except Exception as e:
                 detail = getattr(e, 'detail', str(e))
-                ui.notify(f"An error occurred: {detail}", color="negative")
+                ui.notify(t("auth.error_occurred", detail=detail), color="negative")
 
         # Wrap card in a column for centering
         with ui.column().classes("w-full items-center pt-6"): # Added some padding-top for spacing
             with ui.card().classes("w-full max-w-md p-6"):
-                ui.label("Change Password").classes("text-2xl font-semibold mb-4 text-center")
+                ui.label(t("auth.change_password_title")).classes("text-2xl font-semibold mb-4 text-center")
                 with ui.element('form').classes("space-y-4"):
                     # Define inputs here so they are rendered inside the card and form
-                    old_password_input = ui.input(label="Old Password", password=True, password_toggle_button=True).props("w-full")
-                    new_password_input = ui.input(label="New Password", password=True, password_toggle_button=True).props("w-full")
-                    confirm_password_input = ui.input(label="Confirm New Password", password=True, password_toggle_button=True).props("w-full")
-                    ui.button("Change Password", on_click=handle_submit).props("w-full")
+                    old_password_input = ui.input(label=t("auth.old_password"), password=True, password_toggle_button=True).props("w-full")
+                    new_password_input = ui.input(label=t("auth.new_password"), password=True, password_toggle_button=True).props("w-full")
+                    confirm_password_input = ui.input(label=t("auth.confirm_new_password"), password=True, password_toggle_button=True).props("w-full")
+                    ui.button(t("auth.change_password_button"), on_click=handle_submit).props("w-full")

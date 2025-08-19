@@ -14,7 +14,7 @@ def open_tab(x: str) -> None:
 def get_page_title(path: str, default_title: str | None = None) -> str:
     """Get the page title based on the current path."""
     if path == settings.GUI_MOUNT_PATH:
-        return default_title or "Beaver Habits"
+        return default_title or "BeaverPrime"
         
     if "/add" in path:
         return "Add Habits"
@@ -32,4 +32,4 @@ def get_page_title(path: str, default_title: str | None = None) -> str:
         # Use the provided habit name if available, otherwise fall back to "Habit Details"
         return default_title or "Habit Details"
     else:
-        return default_title or "Beaver Prime"
+        return default_title or "BeaverPrime"

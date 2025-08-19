@@ -11,6 +11,7 @@ from beaverhabits.frontend import icons
 from beaverhabits.frontend.components import menu_header, menu_icon_button
 from beaverhabits.frontend.components.index import week_navigation # Added import
 from beaverhabits.logging import logger
+from beaverhabits.services.i18n import init_user_language
 
 from .header import add_meta_tags, add_analytics, add_all_scripts
 from .menu import list_selector, menu_component
@@ -25,7 +26,10 @@ async def layout(
     days: list[datetime.date] | None = None # Added days parameter
 ):
     """Base layout for all pages."""
-    title = title or "Beaver Prime"
+    title = title or "BeaverPrime"
+
+    # Initialize user's language preference
+    init_user_language()
 
     with ui.column().classes("w-full") as c:
         # Standard headers and scripts

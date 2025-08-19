@@ -3,6 +3,8 @@ from nicegui import ui, context
 from beaverhabits.app.auth import user_logout
 from beaverhabits.frontend.components import compat_menu
 from beaverhabits.frontend.components.layout.utils.navigation import redirect, open_tab
+from beaverhabits.services.i18n import t
+from .language import settings_menu_item
 
 def menu_component() -> None:
     """Dropdown menu for the top-right corner of the page."""
@@ -11,24 +13,28 @@ def menu_component() -> None:
         show_export = True
 
         path = context.client.page.path
-        compat_menu("Add Habits", lambda: redirect("add"))
-        compat_menu("Edit Habits", lambda: redirect("edit"))
+        compat_menu(t("navigation.add_habits"), lambda: redirect("add"))
+        compat_menu(t("navigation.edit_habits"), lambda: redirect("edit"))
         if "edit" in path:
-            compat_menu("Reorder", lambda: redirect("order"))
+            compat_menu(t("navigation.reorder"), lambda: redirect("order"))
         ui.separator()
 
-        compat_menu("Configure lists", lambda: redirect("lists"))
+        compat_menu(t("navigation.configure_lists"), lambda: redirect("lists"))
         ui.separator()
 
         if show_export:
-            compat_menu("Export", lambda: open_tab("export"))
+            compat_menu(t("navigation.export"), lambda: open_tab("export"))
             # ui.separator() # Keep separator logic clean, maybe group user settings
         if show_import:
-            compat_menu("Import", lambda: redirect("import"))
+            compat_menu(t("navigation.import"), lambda: redirect("import"))
 
-        # Adding Change Password link here
-        ui.separator() # Separator before user-specific actions like change password and logout
-        compat_menu("Change Password", lambda: ui.navigate.to("/gui/change-password")) # Use ui.navigate.to for internal links
+        # Adding Settings and Change Password link here
+        ui.separator() # Separator before user-specific actions
+        
+        # Settings menu item (navigates to settings page)
+        settings_menu_item()
+        
+        compat_menu(t("navigation.change_password"), lambda: ui.navigate.to("/gui/change-password")) # Use ui.navigate.to for internal links
         ui.separator()
 
-        compat_menu("Logout", lambda: user_logout() and ui.navigate.to("/login"))
+        compat_menu(t("navigation.logout"), lambda: user_logout() and ui.navigate.to("/login"))

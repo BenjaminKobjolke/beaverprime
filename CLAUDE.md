@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Beaver Prime Habit Tracker is a self-hosted habit tracking application built with FastAPI and NiceGUI. This fork adds enhanced features including list support, weekly goals, letter filtering, and a comprehensive API.
+BeaverPrime Habit Tracker is a self-hosted habit tracking application built with FastAPI and NiceGUI. This fork adds enhanced features including list support, weekly goals, letter filtering, and a comprehensive API.
 
 ## Tech Stack
 

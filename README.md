@@ -1,5 +1,4 @@
-# Beaver Prime Habit Tracker
-
+# BeaverPrime Habit Tracker
 
 A self-hosted habit tracking app without "Goals"
 
@@ -28,7 +27,6 @@ This fork adds several powerful enhancements:
 # Getting Started
 
 ## Self-Hosting
-
 
 ## Development
 

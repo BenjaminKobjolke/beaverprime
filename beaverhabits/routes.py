@@ -26,10 +26,12 @@ from .frontend.habit_page import habit_page_ui
 from .frontend.index_page import index_page_ui
 from .frontend.lists_page import lists_page_ui
 from .frontend.change_password_page import change_password_ui
+from .frontend.settings_page import settings_page_ui
 from .frontend.verify_email_page import verify_email_page_ui
 from .frontend.forgot_password_page import forgot_password_page_ui, password_reset_success_page_ui
 from .frontend.reset_password_page import reset_password_page_ui
 from .utils import get_display_days, get_user_today_date, reset_week_offset, is_navigating, set_navigating
+from .services.i18n import t
 
 UNRESTRICTED_PAGE_ROUTES = ("/login", "/register", "/gui/verify-email", "/gui/verify", "/gui/forgot-password", "/gui/reset-password")
 
@@ -155,7 +157,7 @@ async def habit_page(habit_id: str, user: User = Depends(current_active_user)) -
     today = await get_user_today_date()
     habit = await views.get_user_habit(user, habit_id)
     if habit is None:
-        ui.notify(f"Habit with ID {habit_id} not found.", color="negative")
+        ui.notify(t("habits.habit_not_found", habit_id=habit_id), color="negative")
         return RedirectResponse("/gui")
     await habit_page_ui(today, habit, user)
 
@@ -167,7 +169,7 @@ async def gui_habit_page_heatmap(
 ) -> Optional[RedirectResponse]:
     habit = await views.get_user_habit(user, habit_id)
     if habit is None:
-        ui.notify(f"Habit with ID {habit_id} not found.", color="negative")
+        ui.notify(t("habits.habit_not_found", habit_id=habit_id), color="negative")
         return RedirectResponse("/gui")
     today = await get_user_today_date()
     await heatmap_page(today, habit, user)
@@ -177,7 +179,7 @@ async def gui_habit_page_heatmap(
 async def gui_export(user: User = Depends(current_active_user)) -> None:
     habits = await get_user_habits(user)
     if not habits:
-        ui.notify("No habits to export", color="negative")
+        ui.notify(t("export.no_habits"), color="negative")
         return
     await views.export_user_habits(habits, user.email)
 
@@ -185,6 +187,12 @@ async def gui_export(user: User = Depends(current_active_user)) -> None:
 @ui.page("/gui/import")
 async def gui_import(user: User = Depends(current_active_user)) -> None:
     await import_ui_page(user)
+
+
+@ui.page("/gui/settings", title="Settings")
+async def show_settings_page(user: User = Depends(current_active_user)):
+    """Settings page."""
+    await settings_page_ui(user=user)
 
 
 @ui.page("/gui/change-password", title="Change Password")
@@ -267,9 +275,19 @@ async def gui_verify_email(request: Request):
 
 @ui.page("/login")
 async def login_page() -> Optional[RedirectResponse]:
+    from beaverhabits.services.i18n import init_user_language
+    from beaverhabits.frontend.components import auth_language_switcher
+    
+    # Initialize user language before any UI
+    init_user_language()
+    
     custom_header()
     if await views.is_gui_authenticated():
         return RedirectResponse("/gui")
+    
+    # Add language switcher in top-right corner
+    with ui.row().classes("fixed top-4 right-4 z-50"):
+        auth_language_switcher()
 
     # Pre-fill email if remembered
     remembered_email = app.storage.user.get("remembered_email")
@@ -281,7 +299,7 @@ async def login_page() -> Optional[RedirectResponse]:
         if token is not None:
             # Check if email verification is required and user is not verified
             if settings.REQUIRE_VERIFICATION and user and not user.is_verified:
-                ui.notify("Please verify your email address before logging in. Check your inbox for the verification email.", color="warning", timeout=8000)
+                ui.notify(t("auth.verify_email_before_login"), color="warning", timeout=8000)
                 ui.navigate.to("/gui/verify-email")
                 return
             
@@ -292,37 +310,47 @@ async def login_page() -> Optional[RedirectResponse]:
                 app.storage.user.update({"remembered_email": None, "remember_me": False})
             ui.navigate.to(app.storage.user.get("referrer_path", "/"))
         else:
-            ui.notify("email or password wrong!", color="negative")
+            ui.notify(t("auth.invalid_credentials"), color="negative")
 
     with ui.card().classes("absolute-center shadow-none w-96"):
-        email = ui.input("email", value=remembered_email or "").on("keydown.enter", try_login)
+        email = ui.input(t("auth.email"), value=remembered_email or "").on("keydown.enter", try_login)
         email.classes("w-56")
 
-        password = ui.input("password", password=True, password_toggle_button=True)
+        password = ui.input(t("auth.password"), password=True, password_toggle_button=True)
         password.on("keydown.enter", try_login)
         password.classes("w-56")
         
-        remember_me = ui.checkbox("Remember me", value=remembered_flag)
+        remember_me = ui.checkbox(t("auth.remember_me"), value=remembered_flag)
         
         with ui.element("div").classes("flex mt-4 justify-between items-center"):
-            ui.button("Continue", on_click=try_login).props('padding="xs lg"')
+            ui.button(t("auth.continue"), on_click=try_login).props('padding="xs lg"')
 
         # Forgot password link
         with ui.row().classes("w-full justify-center mt-3"):
-            ui.link("Forgot your password?", target="/gui/forgot-password").classes("text-sm text-blue-500 hover:underline")
+            ui.link(t("auth.forgot_password"), target="/gui/forgot-password").classes("text-sm text-blue-500 hover:underline")
 
         if not await get_user_count() >= settings.MAX_USER_COUNT > 0:
             ui.separator()
             with ui.row():
-                ui.label("New around here?").classes("text-sm")
-                ui.link("Create account", target="/register").classes("text-sm")
+                ui.label(t("auth.new_here")).classes("text-sm")
+                ui.link(t("auth.create_account"), target="/register").classes("text-sm")
 
 
 @ui.page("/register")
 async def register_page():
+    from beaverhabits.services.i18n import init_user_language
+    from beaverhabits.frontend.components import auth_language_switcher
+    
+    # Initialize user language before any UI
+    init_user_language()
+    
     custom_header()
     if await views.is_gui_authenticated():
         return RedirectResponse("/gui")
+    
+    # Add language switcher in top-right corner
+    with ui.row().classes("fixed top-4 right-4 z-50"):
+        auth_language_switcher()
 
     async def try_register():
         try:
@@ -331,7 +359,7 @@ async def register_page():
             
             if settings.REQUIRE_VERIFICATION:
                 # Don't log user in immediately - redirect to verification page with confirmation
-                ui.notify("Registration successful! Please check your email for a verification link.", color="positive", timeout=8000)
+                ui.notify(t("auth.registration_successful_verify"), color="positive", timeout=8000)
                 ui.navigate.to("/gui/verify-email?status=pending")
             else:
                 # If verification not required, log user in as before
@@ -342,20 +370,20 @@ async def register_page():
 
     await views.validate_max_user_count()
     with ui.card().classes("absolute-center shadow-none w-96"):
-        email = ui.input("email").on("keydown.enter", try_register).classes("w-56")
+        email = ui.input(t("auth.email")).on("keydown.enter", try_register).classes("w-56")
         password = (
-            ui.input("password", password=True, password_toggle_button=True)
+            ui.input(t("auth.password"), password=True, password_toggle_button=True)
             .on("keydown.enter", try_register)
             .classes("w-56")
         )
 
         with ui.element("div").classes("flex mt-4 justify-between items-center"):
-            ui.button("Register", on_click=try_register).props('padding="xs lg"')
+            ui.button(t("auth.register"), on_click=try_register).props('padding="xs lg"')
 
         ui.separator()
         with ui.row():
-            ui.label("Already have an account?")
-            ui.link("Log in", target="/login")
+            ui.label(t("auth.already_have_account"))
+            ui.link(t("auth.log_in"), target="/login")
 
 
 
@@ -363,7 +391,7 @@ def init_gui_routes(fastapi_app: FastAPI):
     def handle_exception(exception: Exception):
         if isinstance(exception, HTTPException):
             if exception.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
-                ui.notify(f"An error occurred: {exception}", type="negative")
+                ui.notify(t("general.error_occurred", error=exception), type="negative")
 
     @app.middleware("http")
     async def AuthMiddleware(request: Request, call_next):
