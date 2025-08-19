@@ -180,6 +180,7 @@ async def reset_password_page_ui(request: Request):
                     return
                 
                 submit_btn.props("loading")
+                submit_btn.props("disable")
                 
                 try:
                     # Call the FastAPI-Users reset password endpoint
@@ -239,6 +240,7 @@ async def reset_password_page_ui(request: Request):
                     
                 finally:
                     submit_btn.props(remove="loading")
+                    submit_btn.props(remove="disable")
             
             # Back to login link
             with ui.row().classes("w-full justify-center mt-6"):
