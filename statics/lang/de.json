@@ -291,7 +291,7 @@
     "no_data_found": "Keine Daten zum Importieren gefunden"
   },
   "settings": {
-    "language_section": "Spracheinstellungen",
+    "language_section": "Sprache",
     "current_language": "Aktuelle Sprache",
     "select_language": "Sprache auswählen",
     "language_changed": "Sprache zu {language} geändert",

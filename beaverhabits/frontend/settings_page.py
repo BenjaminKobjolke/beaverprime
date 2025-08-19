@@ -21,9 +21,6 @@ async def settings_page_ui(user: User):
     
     async with layout(user=user):
         with ui.column().classes("w-full max-w-2xl mx-auto gap-6"):
-            # Page title
-            ui.label(t("navigation.settings")).classes("text-3xl font-bold")
-            
             # Language Settings Section
             with ui.card().classes("w-full p-6"):
                 ui.label(t("settings.language_section")).classes("text-xl font-semibold mb-4")
@@ -54,11 +51,11 @@ async def settings_page_ui(user: User):
                                 logger.info(f"Settings page - switching to: {language_code} ({language_name})")
                                 success = set_user_language(language_code)
                                 if success:
-                                    ui.notify(t("settings.language_changed", language=language_name), color="positive")
                                     # Reload the page to apply the new language
+                                    # Note: We don't show notification here to avoid translation issues during language switch
                                     ui.navigate.reload()
                                 else:
-                                    ui.notify(t("settings.language_change_failed", language=language_name), color="negative")
+                                    ui.notify(f"Failed to change language to {language_name}", color="negative")
                             
                             ui.button(
                                 f"{'✓ ' if is_current else '   '}{lang_name}",

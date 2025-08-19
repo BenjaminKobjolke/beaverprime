@@ -292,7 +292,7 @@
     "no_data_found": "No data found to import"
   },
   "settings": {
-    "language_section": "Language Settings",
+    "language_section": "Language",
     "current_language": "Current Language",
     "select_language": "Select Language",
     "language_changed": "Language changed to {language}",

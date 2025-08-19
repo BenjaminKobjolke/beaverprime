@@ -24,6 +24,8 @@ def get_page_title(path: str, default_title: str | None = None) -> str:
         return "Configure Lists"
     elif "/order" in path:
         return "Reorder Habits"
+    elif "/settings" in path:
+        return "Settings"
     elif "/import" in path:
         return "Import"
     elif "/export" in path:
