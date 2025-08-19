@@ -293,40 +293,41 @@ async def login_page() -> Optional[RedirectResponse]:
     remembered_email = app.storage.user.get("remembered_email")
     remembered_flag = app.storage.user.get("remember_me", False)
 
-    async def try_login():
-        login_btn.props("loading")
-        login_btn.props("disable")
-        try:
-            user = await user_authenticate(email=email.value, password=password.value)
-            token = user and await user_create_token(user)
-            if token is not None:
-                # Check if email verification is required and user is not verified
-                if settings.REQUIRE_VERIFICATION and user and not user.is_verified:
-                    ui.notify(t("auth.verify_email_before_login"), color="warning", timeout=8000)
-                    ui.navigate.to("/gui/verify-email")
-                    return
-                
-                app.storage.user.update({"auth_token": token})
-                if remember_me.value:
-                    app.storage.user.update({"remembered_email": email.value, "remember_me": True})
-                else:
-                    app.storage.user.update({"remembered_email": None, "remember_me": False})
-                ui.navigate.to(app.storage.user.get("referrer_path", "/"))
-            else:
-                ui.notify(t("auth.invalid_credentials"), color="negative")
-        finally:
-            login_btn.props(remove="loading")
-            login_btn.props(remove="disable")
-
     with ui.column().classes("w-full max-w-md mx-auto mt-16 gap-6"):
         with ui.card().classes("w-full p-8"):
             ui.label(t("auth.login_title")).classes("text-2xl font-bold text-center mb-6")
             
-            email = ui.input(t("auth.email"), value=remembered_email or "").on("keydown.enter", try_login).props("outlined dense").classes("w-full")
-
-            password = ui.input(t("auth.password"), password=True, password_toggle_button=True).on("keydown.enter", try_login).props("outlined dense").classes("w-full")
-            
+            email = ui.input(t("auth.email"), value=remembered_email or "").props("outlined dense").classes("w-full")
+            password = ui.input(t("auth.password"), password=True, password_toggle_button=True).props("outlined dense").classes("w-full")
             remember_me = ui.checkbox(t("auth.remember_me"), value=remembered_flag).classes("mt-2")
+            
+            async def try_login():
+                login_btn.props("loading")
+                login_btn.props("disable")
+                try:
+                    user = await user_authenticate(email=email.value, password=password.value)
+                    token = user and await user_create_token(user)
+                    if token is not None:
+                        # Check if email verification is required and user is not verified
+                        if settings.REQUIRE_VERIFICATION and user and not user.is_verified:
+                            ui.notify(t("auth.verify_email_before_login"), color="warning", timeout=8000)
+                            ui.navigate.to("/gui/verify-email")
+                            return
+                        
+                        app.storage.user.update({"auth_token": token})
+                        if remember_me.value:
+                            app.storage.user.update({"remembered_email": email.value, "remember_me": True})
+                        else:
+                            app.storage.user.update({"remembered_email": None, "remember_me": False})
+                        ui.navigate.to(app.storage.user.get("referrer_path", "/"))
+                    else:
+                        ui.notify(t("auth.invalid_credentials"), color="negative")
+                finally:
+                    login_btn.props(remove="loading")
+                    login_btn.props(remove="disable")
+            
+            email.on("keydown.enter", try_login)
+            password.on("keydown.enter", try_login)
             
             login_btn = ui.button(t("auth.continue"), on_click=try_login).props("flat").classes("w-full bg-blue-500 text-white py-3 rounded-lg mt-4")
 
@@ -357,34 +358,37 @@ async def register_page():
     with ui.row().classes("fixed top-4 right-4 z-50"):
         auth_language_switcher()
 
-    async def try_register():
-        register_btn.props("loading")
-        register_btn.props("disable")
-        try:
-            await views.validate_max_user_count()
-            user = await views.register_user(email=email.value, password=password.value)
-            
-            if settings.REQUIRE_VERIFICATION:
-                # Don't log user in immediately - redirect to verification page with confirmation
-                ui.notify(t("auth.registration_successful_verify"), color="positive", timeout=8000)
-                ui.navigate.to("/gui/verify-email?status=pending")
-            else:
-                # If verification not required, log user in as before
-                await views.login_user(user)
-                ui.navigate.to(app.storage.user.get("referrer_path", "/"))
-        except Exception as e:
-            ui.notify(str(e), color="negative")
-        finally:
-            register_btn.props(remove="loading")
-            register_btn.props(remove="disable")
-
     await views.validate_max_user_count()
     with ui.column().classes("w-full max-w-md mx-auto mt-16 gap-6"):
         with ui.card().classes("w-full p-8"):
             ui.label(t("auth.register_title")).classes("text-2xl font-bold text-center mb-6")
             
-            email = ui.input(t("auth.email")).on("keydown.enter", try_register).props("outlined dense").classes("w-full")
-            password = ui.input(t("auth.password"), password=True, password_toggle_button=True).on("keydown.enter", try_register).props("outlined dense").classes("w-full")
+            email = ui.input(t("auth.email")).props("outlined dense").classes("w-full")
+            password = ui.input(t("auth.password"), password=True, password_toggle_button=True).props("outlined dense").classes("w-full")
+
+            async def try_register():
+                register_btn.props("loading")
+                register_btn.props("disable")
+                try:
+                    await views.validate_max_user_count()
+                    user = await views.register_user(email=email.value, password=password.value)
+                    
+                    if settings.REQUIRE_VERIFICATION:
+                        # Don't log user in immediately - redirect to verification page with confirmation
+                        ui.notify(t("auth.registration_successful_verify"), color="positive", timeout=8000)
+                        ui.navigate.to("/gui/verify-email?status=pending")
+                    else:
+                        # If verification not required, log user in as before
+                        await views.login_user(user)
+                        ui.navigate.to(app.storage.user.get("referrer_path", "/"))
+                except Exception as e:
+                    ui.notify(str(e), color="negative")
+                finally:
+                    register_btn.props(remove="loading")
+                    register_btn.props(remove="disable")
+            
+            email.on("keydown.enter", try_register)
+            password.on("keydown.enter", try_register)
 
             register_btn = ui.button(t("auth.register"), on_click=try_register).props("flat").classes("w-full bg-green-500 text-white py-3 rounded-lg mt-4")
 
