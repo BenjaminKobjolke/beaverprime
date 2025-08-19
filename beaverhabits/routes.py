@@ -312,28 +312,27 @@ async def login_page() -> Optional[RedirectResponse]:
         else:
             ui.notify(t("auth.invalid_credentials"), color="negative")
 
-    with ui.card().classes("absolute-center shadow-none w-96"):
-        email = ui.input(t("auth.email"), value=remembered_email or "").on("keydown.enter", try_login)
-        email.classes("w-56")
+    with ui.column().classes("w-full max-w-md mx-auto mt-16 gap-6"):
+        with ui.card().classes("w-full p-8"):
+            ui.label(t("auth.login_title")).classes("text-2xl font-bold text-center mb-6")
+            
+            email = ui.input(t("auth.email"), value=remembered_email or "").on("keydown.enter", try_login).props("outlined dense").classes("w-full")
 
-        password = ui.input(t("auth.password"), password=True, password_toggle_button=True)
-        password.on("keydown.enter", try_login)
-        password.classes("w-56")
-        
-        remember_me = ui.checkbox(t("auth.remember_me"), value=remembered_flag)
-        
-        with ui.element("div").classes("flex mt-4 justify-between items-center"):
-            ui.button(t("auth.continue"), on_click=try_login).props('padding="xs lg"')
+            password = ui.input(t("auth.password"), password=True, password_toggle_button=True).on("keydown.enter", try_login).props("outlined dense").classes("w-full")
+            
+            remember_me = ui.checkbox(t("auth.remember_me"), value=remembered_flag).classes("mt-2")
+            
+            ui.button(t("auth.continue"), on_click=try_login).props("flat").classes("w-full bg-blue-500 text-white py-3 rounded-lg mt-4")
 
-        # Forgot password link
-        with ui.row().classes("w-full justify-center mt-3"):
-            ui.link(t("auth.forgot_password"), target="/gui/forgot-password").classes("text-sm text-blue-500 hover:underline")
+            # Forgot password link
+            with ui.row().classes("w-full justify-center mt-4"):
+                ui.link(t("auth.forgot_password"), target="/gui/forgot-password").classes("text-blue-500 hover:underline")
 
-        if not await get_user_count() >= settings.MAX_USER_COUNT > 0:
-            ui.separator()
-            with ui.row():
-                ui.label(t("auth.new_here")).classes("text-sm")
-                ui.link(t("auth.create_account"), target="/register").classes("text-sm")
+            if not await get_user_count() >= settings.MAX_USER_COUNT > 0:
+                ui.separator().classes("mt-6")
+                with ui.row().classes("w-full justify-center gap-1 mt-4"):
+                    ui.label(t("auth.new_here"))
+                    ui.link(t("auth.create_account"), target="/register").classes("text-blue-500 hover:underline")
 
 
 @ui.page("/register")
@@ -369,21 +368,19 @@ async def register_page():
             ui.notify(str(e), color="negative")
 
     await views.validate_max_user_count()
-    with ui.card().classes("absolute-center shadow-none w-96"):
-        email = ui.input(t("auth.email")).on("keydown.enter", try_register).classes("w-56")
-        password = (
-            ui.input(t("auth.password"), password=True, password_toggle_button=True)
-            .on("keydown.enter", try_register)
-            .classes("w-56")
-        )
+    with ui.column().classes("w-full max-w-md mx-auto mt-16 gap-6"):
+        with ui.card().classes("w-full p-8"):
+            ui.label(t("auth.register_title")).classes("text-2xl font-bold text-center mb-6")
+            
+            email = ui.input(t("auth.email")).on("keydown.enter", try_register).props("outlined dense").classes("w-full")
+            password = ui.input(t("auth.password"), password=True, password_toggle_button=True).on("keydown.enter", try_register).props("outlined dense").classes("w-full")
 
-        with ui.element("div").classes("flex mt-4 justify-between items-center"):
-            ui.button(t("auth.register"), on_click=try_register).props('padding="xs lg"')
+            ui.button(t("auth.register"), on_click=try_register).props("flat").classes("w-full bg-green-500 text-white py-3 rounded-lg mt-4")
 
-        ui.separator()
-        with ui.row():
-            ui.label(t("auth.already_have_account"))
-            ui.link(t("auth.log_in"), target="/login")
+            ui.separator().classes("mt-6")
+            with ui.row().classes("w-full justify-center gap-1 mt-4"):
+                ui.label(t("auth.already_have_account"))
+                ui.link(t("auth.log_in"), target="/login").classes("text-blue-500 hover:underline")
 
 
 
