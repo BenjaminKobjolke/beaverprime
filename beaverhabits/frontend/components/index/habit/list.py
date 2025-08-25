@@ -6,12 +6,12 @@ from nicegui import ui
 from beaverhabits.configs import settings
 from beaverhabits.frontend.components import HabitCheckBox, IndexBadge
 from beaverhabits.frontend.components.habit.link import HabitLink
-from beaverhabits.frontend.components.habit.goal import HabitGoalLabel
+from beaverhabits.frontend.components.habit.goal import HabitGoalLabel, HabitConsecutiveWeeksLabel
 from beaverhabits.frontend.components.habit.priority import HabitPriority
 from beaverhabits.sql.models import Habit
 from beaverhabits.app.crud import get_habit_checks
 from beaverhabits.logging import logger
-from .utils import get_habit_priority, get_week_ticks, get_last_week_completion, should_check_last_week
+from .utils import get_habit_priority, get_week_ticks, get_last_week_completion, should_check_last_week, get_consecutive_weeks_count
 
 async def update_habit_card(habit: Habit, priority_label: HabitPriority | None = None) -> None:
     """Update a habit card's priority and trigger sort."""
@@ -86,6 +86,7 @@ async def render_habit_card(habit: Habit, days: list[datetime.date], row_classes
     is_completed = habit.weekly_goal and week_ticks >= habit.weekly_goal
     priority = await calculate_habit_priority(habit, is_completed)
     last_week_complete = await get_last_week_completion(habit, today)
+    consecutive_weeks = await get_consecutive_weeks_count(habit, today)
     
     # Extract filter letters from habit name parts split by ||
     filter_letters = []
@@ -130,23 +131,31 @@ async def render_habit_card(habit: Habit, days: list[datetime.date], row_classes
                 
                 # Container with relative positioning
                 with ui.element("div").classes("relative w-full"):
-                    # Title container with space for goal
+                    # Title container with space for goal and consecutive weeks
                     with ui.element("div").classes("pr-16"):
                         name = HabitLink(habit.name, target=redirect_page, initial_color=initial_color)
                         name.classes("block break-words whitespace-normal w-full px-3 py-2")
                     
-                    # Goal count fixed to top right
+                    # Goal and consecutive weeks stacked on top right
                     if habit.weekly_goal:
-                        with ui.element("div").classes("absolute top-2 right-4"):
+                        # Weekly goal (5x)
+                        with ui.element("div").classes("absolute top-1 right-4"):
                             goal_label = HabitGoalLabel(habit.weekly_goal, initial_color)
                             goal_label.props(f'data-habit-id="{habit.id}"')
+                        
+                        # Consecutive weeks (3w) - positioned below the weekly goal
+                        with ui.element("div").classes("absolute top-5 right-4"):
+                            consecutive_label = HabitConsecutiveWeeksLabel(consecutive_weeks, initial_color)
+                            consecutive_label.props(f'data-habit-id="{habit.id}"')
                     
                     show_hide_class = "hidden"
                     if settings.INDEX_SHOW_PRIORITY:
                         show_hide_class = "visible"
                         pass
 
-                    with ui.element("div").classes("absolute top-2 right-16 " + show_hide_class):
+                    # Priority indicator - position depends on whether we show weekly goal
+                    priority_right_pos = "right-20" if habit.weekly_goal else "right-4"
+                    with ui.element("div").classes(f"absolute top-2 {priority_right_pos} " + show_hide_class):
                         priority_label = HabitPriority(priority)
                         priority_label.props(f'data-habit-id="{habit.id}"')
 

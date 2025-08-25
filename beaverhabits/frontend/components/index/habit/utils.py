@@ -85,3 +85,39 @@ def filter_habits_by_list(habits: List[Habit], current_list_id: str | int | None
         logger.info(f"Showing all {len(active_habits)} habits")
     
     return active_habits
+
+async def get_consecutive_weeks_count(habit: Habit, today: datetime.date) -> int:
+    """Calculate consecutive weeks where weekly goal was met."""
+    if not habit.weekly_goal or habit.weekly_goal == 0:
+        return 0
+        
+    records = await get_habit_checks(habit.id, habit.user_id)
+    consecutive_weeks = 0
+    
+    # Start from current week and go backwards
+    current_week_start = today - datetime.timedelta(days=today.weekday())
+    week_start = current_week_start
+    
+    while True:
+        week_end = week_start + datetime.timedelta(days=6)
+        
+        # Don't count weeks that start before habit was created
+        # This allows the week of creation to count
+        if week_start < habit.created_at.date() and week_end < habit.created_at.date():
+            break
+        
+        # Count completions for this week
+        week_ticks = sum(1 for record in records 
+                        if week_start <= record.day <= week_end and record.done)
+        
+        # If this week meets the goal, increment counter
+        if week_ticks >= habit.weekly_goal:
+            consecutive_weeks += 1
+        else:
+            # First week that doesn't meet goal - stop counting
+            break
+            
+        # Move to previous week
+        week_start -= datetime.timedelta(days=7)
+            
+    return consecutive_weeks
