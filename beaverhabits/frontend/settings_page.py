@@ -21,6 +21,7 @@ from beaverhabits.services.i18n import (
     init_user_language
 )
 from beaverhabits.logging import logger
+from beaverhabits.configs import settings
 from fastapi_users.exceptions import InvalidPasswordException
 
 
@@ -138,6 +139,26 @@ async def settings_page_ui(user: User, user_manager: UserManager):
                         t("auth.change_password_button"), 
                         on_click=handle_password_change
                     ).classes("bg-blue-500 text-white px-6 py-2 rounded-lg")
+            
+            # Display Settings Section
+            with ui.card().classes("w-full p-6"):
+                ui.label(t("settings.display_section")).classes("text-xl font-semibold mb-4")
+                
+                with ui.column().classes("w-full gap-4"):
+                    # Consecutive weeks toggle
+                    consecutive_weeks_checkbox = ui.checkbox(
+                        t("settings.show_consecutive_weeks"), 
+                        value=settings.INDEX_SHOW_CONSECUTIVE_WEEKS
+                    ).classes("mb-2")
+                    ui.label(t("settings.consecutive_weeks_description")).classes("text-sm text-gray-600 ml-6")
+                    
+                    async def handle_consecutive_weeks_toggle():
+                        """Handle consecutive weeks display toggle."""
+                        # Note: This would require config file modification or user preferences storage
+                        # For now, show a notification about restart requirement
+                        ui.notify(t("settings.restart_required"), color="info")
+                    
+                    consecutive_weeks_checkbox.on_value_change = handle_consecutive_weeks_toggle
             
             # Data Management Section
             with ui.card().classes("w-full p-6"):

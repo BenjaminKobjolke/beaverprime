@@ -80,6 +80,7 @@ class Settings(BaseSettings):
 
     INDEX_SHOW_HABIT_COUNT: bool = False
     INDEX_SHOW_PRIORITY: bool = False  # Set to False to hide priority numbers
+    INDEX_SHOW_CONSECUTIVE_WEEKS: bool = True  # Set to False to hide consecutive weeks display
     INDEX_HABIT_NAME_COLUMNS: int = 8
     INDEX_HABIT_DATE_COLUMNS: int = -1  # -1 for week view (Mon-Sun), positive number for past N days
 

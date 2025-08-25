@@ -143,10 +143,11 @@ async def render_habit_card(habit: Habit, days: list[datetime.date], row_classes
                             goal_label = HabitGoalLabel(habit.weekly_goal, initial_color)
                             goal_label.props(f'data-habit-id="{habit.id}"')
                         
-                        # Consecutive weeks (3w) - positioned below the weekly goal
-                        with ui.element("div").classes("absolute top-5 right-4"):
-                            consecutive_label = HabitConsecutiveWeeksLabel(consecutive_weeks, initial_color)
-                            consecutive_label.props(f'data-habit-id="{habit.id}"')
+                        # Consecutive weeks (3w) - positioned below the weekly goal (only if enabled)
+                        if settings.INDEX_SHOW_CONSECUTIVE_WEEKS:
+                            with ui.element("div").classes("absolute top-5 right-4"):
+                                consecutive_label = HabitConsecutiveWeeksLabel(consecutive_weeks, initial_color)
+                                consecutive_label.props(f'data-habit-id="{habit.id}"')
                     
                     show_hide_class = "hidden"
                     if settings.INDEX_SHOW_PRIORITY:

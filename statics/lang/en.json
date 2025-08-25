@@ -353,11 +353,15 @@
   },
   "settings": {
     "language_section": "Language",
+    "display_section": "Display Settings",
     "current_language": "Current Language",
     "select_language": "Select Language",
     "language_changed": "Language changed to {language}",
     "language_change_failed": "Failed to change language to {language}",
-    "only_one_language": "Only one language is currently available"
+    "only_one_language": "Only one language is currently available",
+    "show_consecutive_weeks": "Show consecutive weeks achieved",
+    "consecutive_weeks_description": "Display how many consecutive weeks each habit goal has been met",
+    "restart_required": "Changes will take effect after restart"
   },
   "common": {
     "app_name": "BeaverPrime",

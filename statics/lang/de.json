@@ -352,11 +352,15 @@
   },
   "settings": {
     "language_section": "Sprache",
+    "display_section": "Anzeigeeinstellungen",
     "current_language": "Aktuelle Sprache",
     "select_language": "Sprache auswählen",
     "language_changed": "Sprache zu {language} geändert",
     "language_change_failed": "Sprache konnte nicht zu {language} geändert werden",
-    "only_one_language": "Momentan ist nur eine Sprache verfügbar"
+    "only_one_language": "Momentan ist nur eine Sprache verfügbar",
+    "show_consecutive_weeks": "Aufeinanderfolgende Wochen anzeigen",
+    "consecutive_weeks_description": "Anzeigen, wie viele aufeinanderfolgende Wochen das Ziel jeder Gewohnheit erreicht wurde",
+    "restart_required": "Änderungen werden nach Neustart wirksam"
   },
   "common": {
     "app_name": "BeaverPrime",

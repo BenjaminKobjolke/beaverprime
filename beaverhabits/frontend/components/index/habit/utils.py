@@ -94,9 +94,23 @@ async def get_consecutive_weeks_count(habit: Habit, today: datetime.date) -> int
     records = await get_habit_checks(habit.id, habit.user_id)
     consecutive_weeks = 0
     
-    # Start from current week and go backwards
+    # Check if current week already meets the goal
     current_week_start = today - datetime.timedelta(days=today.weekday())
-    week_start = current_week_start
+    current_week_end = current_week_start + datetime.timedelta(days=6)
+    current_week_ticks = sum(1 for record in records 
+                           if current_week_start <= record.day <= current_week_end and record.done)
+    current_week_complete = current_week_ticks >= habit.weekly_goal
+    
+    # Start from last week (skip current incomplete week) and go backwards
+    week_start = current_week_start - datetime.timedelta(days=7)  # Start from last week
+    
+    print(f"DEBUG consecutive weeks for habit '{habit.name}' (goal: {habit.weekly_goal}x):")
+    print(f"  Today: {today}, Current week start: {current_week_start}")
+    print(f"  Current week ({current_week_start} to {current_week_end}): {current_week_ticks} ticks")
+    print(f"  Current week meets goal: {current_week_complete}")
+    print(f"  Starting from previous week: {week_start}")
+    print(f"  Habit created: {habit.created_at.date()}")
+    print(f"  Total records found: {len(records)}")
     
     while True:
         week_end = week_start + datetime.timedelta(days=6)
@@ -104,20 +118,37 @@ async def get_consecutive_weeks_count(habit: Habit, today: datetime.date) -> int
         # Don't count weeks that start before habit was created
         # This allows the week of creation to count
         if week_start < habit.created_at.date() and week_end < habit.created_at.date():
+            print(f"  Week {week_start} to {week_end}: Completely before habit creation, stopping")
             break
         
         # Count completions for this week
-        week_ticks = sum(1 for record in records 
-                        if week_start <= record.day <= week_end and record.done)
+        week_records = [r for r in records if week_start <= r.day <= week_end and r.done]
+        week_ticks = len(week_records)
+        
+        print(f"  Week {week_start} to {week_end}: {week_ticks} ticks (goal: {habit.weekly_goal})")
+        if week_records:
+            completion_dates = [r.day for r in week_records]
+            print(f"    Completion dates: {completion_dates}")
         
         # If this week meets the goal, increment counter
         if week_ticks >= habit.weekly_goal:
             consecutive_weeks += 1
+            print(f"    ✅ Week meets goal, consecutive weeks now: {consecutive_weeks}")
         else:
             # First week that doesn't meet goal - stop counting
+            print(f"    ❌ Week doesn't meet goal, stopping at {consecutive_weeks} consecutive weeks")
             break
             
         # Move to previous week
         week_start -= datetime.timedelta(days=7)
-            
+    
+    # Bonus: Add current week if it already meets the goal
+    if current_week_complete and consecutive_weeks > 0:
+        consecutive_weeks += 1
+        print(f"  Bonus: Current week meets goal, adding 1 more week")
+    elif current_week_complete and consecutive_weeks == 0:
+        consecutive_weeks = 1
+        print(f"  Bonus: Only current week meets goal, setting to 1 week")
+    
+    print(f"  Final result: {consecutive_weeks} consecutive weeks")
     return consecutive_weeks
