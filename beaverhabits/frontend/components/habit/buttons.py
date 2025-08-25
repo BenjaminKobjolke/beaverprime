@@ -1,4 +1,4 @@
-from typing import Callable, Optional, TYPE_CHECKING
+from typing import Callable, Optional, TYPE_CHECKING, Union
 
 from nicegui import ui
 
@@ -6,9 +6,10 @@ from beaverhabits.sql.models import Habit, HabitList
 from beaverhabits.app.crud import update_habit, create_habit, get_user_habits, get_user_lists
 from beaverhabits.frontend import icons
 from beaverhabits.app.db import User
+from beaverhabits.services.i18n import t
 
 if TYPE_CHECKING:
-    from beaverhabits.frontend.components.habit.inputs import WeeklyGoalInput, HabitNameInput
+    from beaverhabits.frontend.components.habit.inputs import WeeklyGoalInput, HabitNameInput, MultiPartNameInput
 
 class HabitEditButton(ui.button):
     def __init__(self, habit: Habit, refresh: Callable) -> None:
@@ -98,7 +99,7 @@ class HabitAddButton(ui.button):
             ui.navigate.reload()  # Reload the page to show the new habit
 
 class HabitSaveButton(ui.button):
-    def __init__(self, habit: Habit, weekly_goal_input: 'WeeklyGoalInput', name_input: 'HabitNameInput', refresh: Callable) -> None:
+    def __init__(self, habit: Habit, weekly_goal_input: 'WeeklyGoalInput', name_input: Union['HabitNameInput', 'MultiPartNameInput'], refresh: Callable) -> None:
         super().__init__("Save")
         self.habit = habit
         self.weekly_goal_input = weekly_goal_input
@@ -112,6 +113,19 @@ class HabitSaveButton(ui.button):
         # Save all changes to the habit
         weekly_goal = self.weekly_goal_input.get_value()
         name = self.name_input.get_value()
+        
+        # Validate name input (especially for MultiPartNameInput)
+        if hasattr(self.name_input, 'validate'):
+            validation_error = self.name_input.validate()
+            if validation_error:
+                ui.notify(validation_error, color="negative")
+                return
+        
+        # Additional check for empty name
+        if not name or not name.strip():
+            ui.notify(t("habits.name_required"), color="negative")
+            return
+            
         await update_habit(
             self.habit.id,
             self.habit.user_id,
@@ -122,7 +136,9 @@ class HabitSaveButton(ui.button):
         # Update the habit object with new values
         self.habit.weekly_goal = weekly_goal
         self.habit.name = name
-        # Update the UI
+        # Update the UI - only update value if it's a simple input
         self.weekly_goal_input.value = weekly_goal
-        self.name_input.value = name
+        if hasattr(self.name_input, 'value'):
+            self.name_input.value = name
+        ui.notify(t("habits.saved_successfully"), color="positive")
         self.refresh()

@@ -50,6 +50,7 @@ class MultiPartNameInput(ui.column):
         self.habit = habit
         self.refresh = refresh
         self.input_fields = []
+        self.field_rows = []  # Track the UI rows containing each field
         self.classes("w-full gap-2")
         
         # Parse initial value (split by ||)
@@ -64,13 +65,21 @@ class MultiPartNameInput(ui.column):
     
     def _add_input_field(self, value: str = "", is_first: bool = False):
         """Add a new input field with add/remove buttons."""
-        with ui.row().classes("w-full items-center gap-2"):
+        row = ui.row().classes("w-full items-center gap-2")
+        with row:
             # Input field
             input_field = ui.input(
                 value=value,
                 placeholder=t("habits.habit_part_placeholder", part=len(self.input_fields) + 1) if len(self.input_fields) > 0 else t("habits.habit_name_placeholder"),
                 validation=self._validate_field
             ).props("dense hide-bottom-space").classes("flex-grow")
+            
+            # Capture the index BEFORE adding to the list (this will be the index of this field)
+            field_index = len(self.input_fields)
+            
+            # Add the input field and row to our tracking lists now
+            self.input_fields.append(input_field)
+            self.field_rows.append(row)
             
             # Add button (always present)
             ui.button(
@@ -79,20 +88,32 @@ class MultiPartNameInput(ui.column):
             ).props("flat fab-mini").classes("text-green-600")
             
             # Remove button (only if not the first field or if there are multiple fields)
-            if not is_first or len(self.input_fields) > 0:
+            if not is_first or len(self.input_fields) > 1:  # Now check against updated length
                 ui.button(
                     "-",
-                    on_click=lambda idx=len(self.input_fields): self._remove_field(idx)
+                    on_click=lambda idx=field_index: self._remove_field_direct(idx)
                 ).props("flat fab-mini").classes("text-red-600")
             else:
                 # Add invisible button to keep alignment (same size as the - button)
                 ui.button("-").props("flat fab-mini").classes("invisible")
-            
-            self.input_fields.append(input_field)
     
     def _add_new_field(self):
         """Add a new empty input field."""
         self._add_input_field()
+    
+    def _remove_field_direct(self, index: int):
+        """Remove an input field by index without rebuilding."""
+        if len(self.input_fields) <= 1:
+            return  # Don't remove if it's the only field
+        
+        if 0 <= index < len(self.input_fields):
+            # Remove the row from the UI
+            row_to_remove = self.field_rows[index]
+            row_to_remove.delete()
+            
+            # Remove from our tracking lists
+            self.input_fields.pop(index)
+            self.field_rows.pop(index)
     
     def _remove_field(self, index: int):
         """Remove an input field by index."""
@@ -101,13 +122,15 @@ class MultiPartNameInput(ui.column):
         
         # Remove the field from our tracking
         if 0 <= index < len(self.input_fields):
-            # Clear the entire row that contains this input
+            # Get all current values (including empty ones) before modification
+            current_values = [field.value for field in self.input_fields]
+            
+            # Remove the field at the specified index
+            current_values.pop(index)
+            
+            # Clear the entire container and rebuild
             self.clear()
             self.input_fields.clear()
-            
-            # Rebuild all fields except the one being removed
-            current_values = self.get_parts()
-            current_values.pop(index)
             
             # If no values left, add one empty field
             if not current_values:
@@ -116,6 +139,9 @@ class MultiPartNameInput(ui.column):
             # Recreate all fields
             for i, value in enumerate(current_values):
                 self._add_input_field(value, i == 0)
+            
+            # Force a UI update
+            self.update()
     
     def _validate_field(self, value: str) -> Optional[str]:
         """Validate individual field."""
