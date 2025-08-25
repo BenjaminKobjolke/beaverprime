@@ -151,7 +151,7 @@ reset_subject = Reset your BeaverPrime password
   - `index_page.py`: Main habit tracker interface
   - `habit_page.py`: Individual habit view with calendar heatmap
   - `lists_page.py`: List management UI
-  - `settings_page.py`: User settings page (language, password, import/export)
+  - `settings_page.py`: User settings page (language, display, password, import/export)
   - `change_password_page.py`: Password change functionality
   - `verify_email_page.py`: Email verification status and instructions
   - `forgot_password_page.py`: Password reset request form
@@ -159,6 +159,10 @@ reset_subject = Reset your BeaverPrime password
   - `components/`: Reusable UI components
     - `layout/`: Page layout components (header, menu, navigation)
     - `index/`: Index page components (habit list, letter filter, week navigation)
+    - `habit/`: Habit-specific components
+      - `goal.py`: `HabitGoalLabel` and `HabitConsecutiveWeeksLabel` components
+      - `inputs.py`: `MultiPartNameInput` with dynamic add/remove functionality
+      - `buttons.py`: Habit action buttons (save, delete, add)
     - `base.py`: Common UI components (buttons, links, grid)
 
 ### Routing Pattern
@@ -182,12 +186,31 @@ Habits can be organized into lists. The list filtering is handled via URL parame
 - No parameter - Show all habits
   List state is persisted in `app.storage.user["current_list"]`
 
+### Multi-Part Habit Names
+
+- Habits support multi-part names using "||" separator (e.g., "Exercise || Walk 30 minutes")
+- `MultiPartNameInput` component allows adding/removing subparts with "+" and "-" buttons
+- UI dynamically adds/removes input fields for each habit part
+- Combined name stored as single string with "||" delimiter
+
 ### Week Navigation
 
 - Week offset tracked in `app.storage.user["week_offset"]`
 - Navigation flag prevents automatic reset to current week
 - `get_display_days()` returns 7 days based on current offset
 - Week navigation UI component in center of header
+
+### Consecutive Weeks Display
+
+- Shows how many consecutive weeks a habit goal has been met (e.g., "3w")
+- Calculated by `get_consecutive_weeks_count()` in `utils.py`
+- Algorithm:
+  - Starts from previous week (skips current incomplete week)
+  - Counts backwards until first week that doesn't meet goal
+  - Bonus: Adds current week if it already meets the goal
+- Display controlled by `settings.INDEX_SHOW_CONSECUTIVE_WEEKS`
+- Configurable via GUI settings page under "Display Settings"
+- Positioned below weekly goal label ("5x") in smaller, muted font
 
 ### Letter Filtering
 
@@ -226,8 +249,9 @@ Habits can be organized into lists. The list filtering is handled via URL parame
 
 ### Settings and Data Management
 
-- Centralized settings page at `/gui/settings` with three main sections:
+- Centralized settings page at `/gui/settings` with four main sections:
   - **Language Settings**: Switch between available languages with live preview
+  - **Display Settings**: Configure UI display options including consecutive weeks visibility
   - **Password Management**: Change user password with validation
   - **Data Management**: Import/export functionality with comprehensive options
 - Export creates JSON files with habits, lists, and completion history
@@ -262,3 +286,24 @@ All API endpoints require email/password in request body (not Bearer token). See
 7. Frontend components use `redirect()` helper for navigation within GUI mount path
 8. Use `t("translation.key")` for all user-facing text to support internationalization
 9. Initialize user language with `init_user_language()` before rendering UI components
+10. Multi-part habit names use "||" separator for storage and `MultiPartNameInput` for editing
+11. Consecutive weeks calculation starts from previous week to avoid current week bias
+
+## Configuration Settings
+
+Key settings that control application behavior:
+
+### Display Settings
+- `INDEX_SHOW_CONSECUTIVE_WEEKS`: Controls consecutive weeks display (default: True)
+- `INDEX_SHOW_HABIT_COUNT`: Show habit completion counts (default: False)  
+- `INDEX_SHOW_PRIORITY`: Show habit priority indicators (default: False)
+- `ENABLE_LETTER_FILTER`: Enable letter-based habit filtering (default: True)
+
+### UI Layout
+- `INDEX_HABIT_NAME_COLUMNS`: Width allocation for habit names (default: 8)
+- `INDEX_HABIT_DATE_COLUMNS`: Date column configuration (default: -1 for week view)
+
+### Features
+- `ENABLE_HABIT_NOTES`: Enable habit notes functionality (default: False)
+
+Settings can be configured in `configs.py` or via the `/gui/settings` page for user preferences.
