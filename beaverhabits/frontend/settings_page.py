@@ -156,7 +156,6 @@ async def settings_page_ui(user: User, user_manager: UserManager):
                 
                 # Get current settings
                 current_settings = get_display_settings()
-                print(f"[SETTINGS] Current display settings: {current_settings}")
                 
                 with ui.column().classes("w-full gap-4"):
                     # Consecutive weeks toggle
@@ -207,39 +206,24 @@ async def settings_page_ui(user: User, user_manager: UserManager):
                                 if current_checkbox is None:
                                     current_checkbox = consecutive_weeks_checkbox.value
                                 
-                                print(f"[SETTINGS] Checking for changes...")
-                                print(f"[SETTINGS] Current font size: {current_font_size}")
-                                print(f"[SETTINGS] Original font size: {current_settings['font_size']}")
-                                print(f"[SETTINGS] Current checkbox: {current_checkbox}")
-                                print(f"[SETTINGS] Original checkbox: {current_settings['show_consecutive_weeks']}")
-                                
                                 font_size_changed = current_font_size != current_settings["font_size"]
                                 checkbox_changed = current_checkbox != current_settings["show_consecutive_weeks"]
-                                
-                                print(f"[SETTINGS] Font size changed: {font_size_changed}")
-                                print(f"[SETTINGS] Checkbox changed: {checkbox_changed}")
-                                
                                 has_changes = font_size_changed or checkbox_changed
-                                print(f"[SETTINGS] Has changes: {has_changes}")
                                 
                                 if has_changes:
-                                    print(f"[SETTINGS] Enabling save button")
                                     save_button.props("color=primary")
                                     save_button.text = "Save Changes"
                                     save_button.enable()
                                     status_label.text = "Changes not saved"
                                     status_label.classes("text-sm text-orange-600")
                                 else:
-                                    print(f"[SETTINGS] Disabling save button")
                                     save_button.props("color=grey")
                                     save_button.text = "No Changes"
                                     save_button.disable()
                                     status_label.text = "All changes saved"
                                     status_label.classes("text-sm text-green-600")
                             except Exception as e:
-                                print(f"[SETTINGS] Error checking changes: {e}")
-                                import traceback
-                                traceback.print_exc()
+                                logger.error(f"Error checking settings changes: {e}")
                         
                         async def handle_save_settings():
                             """Save display settings."""
@@ -248,8 +232,6 @@ async def settings_page_ui(user: User, user_manager: UserManager):
                                     "font_size": font_size_slider.value,
                                     "show_consecutive_weeks": consecutive_weeks_checkbox.value
                                 }
-                                
-                                print(f"[SETTINGS] Attempting to save: {new_settings}")
                                 
                                 success = save_display_settings(new_settings)
                                 
@@ -281,82 +263,44 @@ async def settings_page_ui(user: User, user_manager: UserManager):
                                     logger.error(f"Failed to save display settings: {new_settings}")
                                     
                             except Exception as e:
-                                print(f"[SETTINGS] Error saving settings: {e}")
                                 ui.notify("Error saving settings", color="negative")
                                 logger.error(f"Error saving display settings: {e}")
                         
-                        # Set up event handlers with debugging
+                        # Set up event handlers
                         def on_font_size_change(e):
                             try:
-                                print(f"[SETTINGS] Font size slider event received!")
-                                print(f"[SETTINGS] Event type: {type(e)}")
-                                print(f"[SETTINGS] Event attributes: {dir(e)}")
-                                print(f"[SETTINGS] Event args: {e.args if hasattr(e, 'args') else 'No args'}")
-                                
-                                # Try different ways to get the value
-                                slider_value = None
-                                if hasattr(e, 'value'):
-                                    slider_value = e.value
-                                elif hasattr(e, 'args') and e.args:
-                                    slider_value = e.args.get('value') if isinstance(e.args, dict) else None
-                                else:
-                                    # Fallback to component value
-                                    slider_value = font_size_slider.value
-                                
-                                print(f"[SETTINGS] Font size slider value: {slider_value}")
+                                # Get slider value (fallback to component value if event doesn't have it)
+                                slider_value = font_size_slider.value
                                 check_for_changes(current_font_size=slider_value)
                             except Exception as ex:
-                                print(f"[SETTINGS] Error in font size change handler: {ex}")
-                                import traceback
-                                traceback.print_exc()
+                                logger.error(f"Error in font size change handler: {ex}")
                         
                         def on_checkbox_change(e):
                             try:
-                                print(f"[SETTINGS] Checkbox event received!")
-                                print(f"[SETTINGS] Event type: {type(e)}")
-                                print(f"[SETTINGS] Event attributes: {dir(e)}")
-                                print(f"[SETTINGS] Event args: {e.args if hasattr(e, 'args') else 'No args'}")
-                                
-                                # Try different ways to get the value
-                                checkbox_value = None
-                                if hasattr(e, 'value'):
-                                    checkbox_value = e.value
-                                elif hasattr(e, 'args') and e.args:
-                                    checkbox_value = e.args.get('value') if isinstance(e.args, dict) else None
-                                else:
-                                    # Fallback to component value
-                                    checkbox_value = consecutive_weeks_checkbox.value
-                                
-                                print(f"[SETTINGS] Checkbox value: {checkbox_value}")
+                                # Get checkbox value (fallback to component value if event doesn't have it)
+                                checkbox_value = consecutive_weeks_checkbox.value
                                 check_for_changes(current_checkbox=checkbox_value)
                             except Exception as ex:
-                                print(f"[SETTINGS] Error in checkbox change handler: {ex}")
-                                import traceback
-                                traceback.print_exc()
+                                logger.error(f"Error in checkbox change handler: {ex}")
                         
-                        print(f"[SETTINGS] Setting up event handlers with correct syntax")
-                        # Use correct NiceGUI event syntax
-                        # Try both 'change' and 'input' for slider to ensure it works
+                        # Set up event handlers
                         font_size_slider.on("change", on_font_size_change)
                         font_size_slider.on("input", on_font_size_change)  # Fallback for continuous updates
                         
                         # For checkbox, try multiple event types
                         consecutive_weeks_checkbox.on("change", on_checkbox_change)
-                        consecutive_weeks_checkbox.on("click", lambda e: print(f"[SETTINGS] Checkbox clicked!"))
                         consecutive_weeks_checkbox.on("input", on_checkbox_change)  # Alternative event type
                         
                         save_button.on_click(handle_save_settings)
                         
                         # Fallback: periodic check for changes in case events don't work
                         def periodic_check():
-                            print(f"[SETTINGS] Periodic check triggered")
                             check_for_changes()
                         
                         # Set up a timer that checks every 500ms as fallback
                         ui.timer(0.5, periodic_check)
                         
                         # Initial state check
-                        print(f"[SETTINGS] Doing initial state check")
                         check_for_changes()
             
             # Data Management Section

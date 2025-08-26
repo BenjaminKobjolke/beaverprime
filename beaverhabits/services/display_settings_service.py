@@ -27,9 +27,7 @@ class DisplaySettingsService:
     def get_display_settings(cls) -> Dict[str, Any]:
         """Get all display settings as a dictionary."""
         try:
-            print(f"[DISPLAY] Getting display settings from storage")
             stored_settings = app.storage.user.get("display_settings", {})
-            print(f"[DISPLAY] Raw stored settings: {stored_settings}")
             
             # Merge with defaults to handle missing keys
             settings = cls.DEFAULT_SETTINGS.copy()
@@ -39,11 +37,9 @@ class DisplaySettingsService:
             settings["font_size"] = max(cls.MIN_FONT_SIZE, min(cls.MAX_FONT_SIZE, settings["font_size"]))
             settings["show_consecutive_weeks"] = bool(settings["show_consecutive_weeks"])
             
-            print(f"[DISPLAY] Final settings: {settings}")
             return settings
             
         except Exception as e:
-            print(f"[DISPLAY] Error getting settings, using defaults: {e}")
             logger.warning(f"Error getting display settings, using defaults: {e}")
             return cls.DEFAULT_SETTINGS.copy()
     
@@ -51,11 +47,9 @@ class DisplaySettingsService:
     def save_display_settings(cls, settings: Dict[str, Any]) -> bool:
         """Save display settings to user storage."""
         try:
-            print(f"[DISPLAY] Attempting to save settings: {settings}")
-            
             # Validate settings
             if not isinstance(settings, dict):
-                print(f"[DISPLAY] Invalid settings type: {type(settings)}")
+                logger.warning(f"Invalid settings type: {type(settings)}")
                 return False
             
             # Create validated settings object
@@ -70,22 +64,13 @@ class DisplaySettingsService:
             if "show_consecutive_weeks" in settings:
                 validated_settings["show_consecutive_weeks"] = bool(settings["show_consecutive_weeks"])
             
-            print(f"[DISPLAY] Validated settings: {validated_settings}")
-            
             # Store in user preferences
-            print(f"[DISPLAY] Current storage before update: {dict(app.storage.user)}")
             app.storage.user.update({"display_settings": validated_settings})
-            print(f"[DISPLAY] Current storage after update: {dict(app.storage.user)}")
-            
-            # Verify storage
-            stored_back = app.storage.user.get("display_settings", {})
-            print(f"[DISPLAY] Verified stored settings: {stored_back}")
             
             logger.info(f"Display settings saved successfully: {validated_settings}")
             return True
             
         except Exception as e:
-            print(f"[DISPLAY] Error saving settings: {e}")
             logger.error(f"Error saving display settings: {e}", exc_info=True)
             return False
     
@@ -167,12 +152,8 @@ class DisplaySettingsService:
         """Initialize display settings with defaults if not present."""
         try:
             if "display_settings" not in app.storage.user:
-                print(f"[DISPLAY] Initializing default display settings")
                 cls.save_display_settings(cls.DEFAULT_SETTINGS)
-            else:
-                print(f"[DISPLAY] Display settings already exist")
         except Exception as e:
-            print(f"[DISPLAY] Error initializing display settings: {e}")
             logger.warning(f"Error initializing display settings: {e}")
 
 
