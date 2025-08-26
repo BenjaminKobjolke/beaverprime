@@ -4,6 +4,7 @@ from typing import List
 from nicegui import ui
 
 from beaverhabits.configs import settings
+from beaverhabits.services.display_settings_service import get_show_consecutive_weeks
 from beaverhabits.frontend.components import HabitCheckBox, IndexBadge
 from beaverhabits.frontend.components.habit.link import HabitLink
 from beaverhabits.frontend.components.habit.goal import HabitGoalLabel, HabitConsecutiveWeeksLabel
@@ -144,7 +145,7 @@ async def render_habit_card(habit: Habit, days: list[datetime.date], row_classes
                             goal_label.props(f'data-habit-id="{habit.id}"')
                         
                         # Consecutive weeks (3w) - positioned below the weekly goal (only if enabled)
-                        if settings.INDEX_SHOW_CONSECUTIVE_WEEKS:
+                        if get_show_consecutive_weeks():
                             with ui.element("div").classes("absolute top-5 right-4"):
                                 consecutive_label = HabitConsecutiveWeeksLabel(consecutive_weeks, initial_color)
                                 consecutive_label.props(f'data-habit-id="{habit.id}"')

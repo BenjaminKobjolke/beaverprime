@@ -12,6 +12,7 @@ from beaverhabits.frontend.components import menu_header, menu_icon_button
 from beaverhabits.frontend.components.index import week_navigation # Added import
 from beaverhabits.logging import logger
 from beaverhabits.services.i18n import init_user_language
+from beaverhabits.services.display_settings_service import init_display_settings, get_font_size_css
 
 from .header import add_meta_tags, add_analytics, add_all_scripts
 from .menu import list_selector, menu_component
@@ -30,6 +31,10 @@ async def layout(
 
     # Initialize user's language preference
     init_user_language()
+    
+    # Initialize display settings and apply CSS
+    init_display_settings()
+    ui.add_head_html(f'<style id="font-size-styles">{get_font_size_css()}</style>')
 
     with ui.column().classes("w-full") as c:
         # Standard headers and scripts

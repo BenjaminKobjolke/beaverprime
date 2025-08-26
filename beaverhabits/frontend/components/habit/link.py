@@ -3,7 +3,7 @@ from nicegui import ui
 class HabitLink(ui.link):
     def __init__(self, text: str, target: str, initial_color: str | None = None) -> None:
         super().__init__(text, target=target)
-        self.classes("dark:text-white no-underline hover:no-underline")
+        self.classes("dark:text-white no-underline hover:no-underline habit-title")
         
         # Set initial color using CSS style instead of Quasar prop
         if initial_color:
