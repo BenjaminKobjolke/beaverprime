@@ -112,11 +112,25 @@ class DisplaySettingsService:
         goal_size = font_size * 0.875  # Goal indicators like "3x" 
         weeks_size = font_size * 0.75  # Consecutive weeks like "2w"
         
+        # Calculate dynamic spacing based on font size
+        # Base spacing is for font_size = 1.0, scale proportionally
+        base_goal_top = 4  # top-1 = 0.25rem = 4px
+        base_weeks_top = 20  # top-5 = 1.25rem = 20px
+        base_right_padding = 64  # pr-16 = 4rem = 64px
+        
+        # Scale spacing with font size
+        goal_top = base_goal_top * font_size
+        weeks_top = base_weeks_top * font_size
+        right_padding = base_right_padding + (font_size - 1.0) * 20  # Extra padding for larger fonts
+        
         css = f"""
         :root {{
             --habit-font-size: {habit_title_size};
             --goal-font-size: {goal_size};
             --weeks-font-size: {weeks_size};
+            --goal-top-spacing: {goal_top}px;
+            --weeks-top-spacing: {weeks_top}px;
+            --habit-right-padding: {right_padding}px;
         }}
         
         /* Apply font sizes to habit elements */
@@ -130,6 +144,19 @@ class DisplaySettingsService:
         
         .habit-weeks {{
             font-size: calc(var(--weeks-font-size) * 1em) !important;
+        }}
+        
+        /* Dynamic spacing for habit card layout */
+        .habit-card .pr-16 {{
+            padding-right: var(--habit-right-padding) !important;
+        }}
+        
+        .habit-card .absolute.top-1 {{
+            top: var(--goal-top-spacing) !important;
+        }}
+        
+        .habit-card .absolute.top-5 {{
+            top: var(--weeks-top-spacing) !important;
         }}
         """
         

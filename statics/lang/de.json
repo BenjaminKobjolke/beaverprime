@@ -362,9 +362,9 @@
     "consecutive_weeks_description": "Anzeigen, wie viele aufeinanderfolgende Wochen das Ziel jeder Gewohnheit erreicht wurde",
     "font_size_label": "Schriftgröße",
     "font_size_description": "Größe der Gewohnheitstitel, Ziele und aufeinanderfolgenden Wochen anpassen",
-    "font_size_small": "Klein",
-    "font_size_normal": "Normal",
-    "font_size_large": "Groß",
+    "font_size_small": "Normal",
+    "font_size_normal": "Groß",
+    "font_size_large": "Extra Groß",
     "restart_required": "Änderungen werden nach Neustart wirksam"
   },
   "common": {

@@ -363,9 +363,9 @@
     "consecutive_weeks_description": "Display how many consecutive weeks each habit goal has been met",
     "font_size_label": "Font Size",
     "font_size_description": "Adjust the size of habit titles, goals, and consecutive weeks",
-    "font_size_small": "Small",
-    "font_size_normal": "Normal", 
-    "font_size_large": "Large",
+    "font_size_small": "Normal",
+    "font_size_normal": "Large", 
+    "font_size_large": "Extra Large",
     "restart_required": "Changes will take effect after restart"
   },
   "common": {
