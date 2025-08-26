@@ -12,9 +12,9 @@ from fastapi.responses import RedirectResponse
 from nicegui import app, ui
 
 from beaverhabits import views
-from beaverhabits.app.crud import get_user_habits
 from beaverhabits.app.db import User
 from beaverhabits.app.dependencies import current_active_user
+from beaverhabits.repositories import SQLAlchemyUnitOfWork
 from beaverhabits.configs import settings
 from beaverhabits.frontend.add_page import add_page_ui
 from beaverhabits.frontend.cal_heatmap_page import heatmap_page
@@ -65,23 +65,27 @@ async def index_page(
         app.storage.user.update({"current_list": list_id})
     
     # Handle different list parameter types (case-insensitive)
-    current_list_id = None
-    if list_param and list_param.lower() == "none":
-        # For "None" (no list), get all habits and filter to show only those with no list
-        habits = await get_user_habits(user)
-        habits = [h for h in habits if h.list_id is None]
-        current_list_id = "None"
-        logger.info(f"Index page - Showing {len(habits)} habits with no list")
-    elif list_param and list_param.isdigit():
-        # For specific list ID, filter at database level
-        list_id = int(list_param)
-        habits = await get_user_habits(user, list_id)
-        current_list_id = list_id
-        logger.info(f"Index page - Showing {len(habits)} habits from list {list_id}")
-    else:
-        # Default case (no filter) or invalid list parameter
-        habits = await get_user_habits(user)
-        logger.info(f"Index page - Showing all {len(habits)} habits")
+    async with SQLAlchemyUnitOfWork() as uow:
+        from beaverhabits.services.habit_service import HabitService
+        habit_service = HabitService(uow)
+        current_list_id = None
+        
+        if list_param and list_param.lower() == "none":
+            # For "None" (no list), get all habits and filter to show only those with no list
+            habits = await habit_service.get_user_habits(user)
+            habits = [h for h in habits if h.list_id is None]
+            current_list_id = "None"
+            logger.info(f"Index page - Showing {len(habits)} habits with no list")
+        elif list_param and list_param.isdigit():
+            # For specific list ID, filter at database level
+            list_id = int(list_param)
+            habits = await habit_service.get_user_habits(user, list_id)
+            current_list_id = list_id
+            logger.info(f"Index page - Showing {len(habits)} habits from list {list_id}")
+        else:
+            # Default case (no filter) or invalid list parameter
+            habits = await habit_service.get_user_habits(user)
+            logger.info(f"Index page - Showing all {len(habits)} habits")
     
     # Pass the current list ID to the UI
     await index_page_ui(days, habits, user, current_list_id)
@@ -97,7 +101,10 @@ async def add_page(user: User = Depends(current_active_user)) -> None:
 async def edit_page(user: User = Depends(current_active_user)) -> None:
     """Edit habits page."""
     # Get all habits for editing
-    habits = await get_user_habits(user)
+    async with SQLAlchemyUnitOfWork() as uow:
+        from beaverhabits.services.habit_service import HabitService
+        habit_service = HabitService(uow)
+        habits = await habit_service.get_user_habits(user)
     await edit_page_ui(habits, user)
 
 
@@ -117,23 +124,27 @@ async def order_page(
         app.storage.user.update({"current_list": list_id})
     
     # Handle different list parameter types (case-insensitive)
-    current_list_id = None
-    if list_param and list_param.lower() == "none":
-        # For "None" (no list), get all habits and filter to show only those with no list
-        habits = await get_user_habits(user)
-        habits = [h for h in habits if h.list_id is None]
-        current_list_id = "None"
-        logger.info(f"Order page - Showing {len(habits)} habits with no list")
-    elif list_param and list_param.isdigit():
-        # For specific list ID, filter at database level
-        list_id = int(list_param)
-        habits = await get_user_habits(user, list_id)
-        current_list_id = list_id
-        logger.info(f"Order page - Showing {len(habits)} habits from list {list_id}")
-    else:
-        # Default case (no filter) or invalid list parameter
-        habits = await get_user_habits(user)
-        logger.info(f"Order page - Showing all {len(habits)} habits")
+    async with SQLAlchemyUnitOfWork() as uow:
+        from beaverhabits.services.habit_service import HabitService
+        habit_service = HabitService(uow)
+        current_list_id = None
+        
+        if list_param and list_param.lower() == "none":
+            # For "None" (no list), get all habits and filter to show only those with no list
+            habits = await habit_service.get_user_habits(user)
+            habits = [h for h in habits if h.list_id is None]
+            current_list_id = "None"
+            logger.info(f"Order page - Showing {len(habits)} habits with no list")
+        elif list_param and list_param.isdigit():
+            # For specific list ID, filter at database level
+            list_id = int(list_param)
+            habits = await habit_service.get_user_habits(user, list_id)
+            current_list_id = list_id
+            logger.info(f"Order page - Showing {len(habits)} habits from list {list_id}")
+        else:
+            # Default case (no filter) or invalid list parameter
+            habits = await habit_service.get_user_habits(user)
+            logger.info(f"Order page - Showing all {len(habits)} habits")
     
     # Pass the current list ID to the UI
     await order_page_ui(habits, user, current_list_id)
@@ -171,10 +182,13 @@ async def gui_habit_page_heatmap(
 @ui.page("/gui/export")
 async def gui_export(user: User = Depends(current_active_user)) -> None:
     """Export habits data."""
-    habits = await get_user_habits(user)
-    if not habits:
-        ui.notify(t("export.no_habits"), color="negative")
-        return
+    async with SQLAlchemyUnitOfWork() as uow:
+        from beaverhabits.services.habit_service import HabitService
+        habit_service = HabitService(uow)
+        habits = await habit_service.get_user_habits(user)
+        if not habits:
+            ui.notify(t("export.no_habits"), color="negative")
+            return
     await views.export_user_habits(habits, user, user.email)
 
 
