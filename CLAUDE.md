@@ -139,6 +139,14 @@ reset_subject = Reset your BeaverPrime password
 - `beaverhabits/services/`: Business services
   - `email.py`: Email service for verification and password reset emails
   - `i18n.py`: Internationalization service with translation management
+  - `display_settings_service.py`: User display preferences (font size, UI toggles)
+  - `cache_service.py`: In-memory caching with TTL support
+  - `performance_service.py`: High-performance operations using bulk queries
+  - `monitoring_service.py`: Performance monitoring and metrics collection
+- `beaverhabits/repositories/`: Repository Pattern implementation
+  - `interfaces.py`: Repository interfaces and Unit of Work pattern
+  - `sqlalchemy_repositories.py`: SQLAlchemy-based repository implementations
+  - `cached_unit_of_work.py`: Cached Unit of Work with query result caching
 - `beaverhabits/api/`: RESTful API endpoints
   - `routes/habits.py`: Habit completion endpoints
   - `routes/lists.py`: List management
@@ -200,17 +208,19 @@ Habits can be organized into lists. The list filtering is handled via URL parame
 - `get_display_days()` returns 7 days based on current offset
 - Week navigation UI component in center of header
 
-### Consecutive Weeks Display
+### Display Settings System
 
-- Shows how many consecutive weeks a habit goal has been met (e.g., "3w")
-- Calculated by `get_consecutive_weeks_count()` in `utils.py`
-- Algorithm:
-  - Starts from previous week (skips current incomplete week)
-  - Counts backwards until first week that doesn't meet goal
-  - Bonus: Adds current week if it already meets the goal
-- Display controlled by `settings.INDEX_SHOW_CONSECUTIVE_WEEKS`
-- Configurable via GUI settings page under "Display Settings"
-- Positioned below weekly goal label ("5x") in smaller, muted font
+User preferences for UI display options stored in `app.storage.user["display_settings"]`:
+
+- **Font Size Scaling**: Adjustable from 1.0x to 3.0x affecting habit titles, goals, and consecutive weeks
+  - Managed by `DisplaySettingsService` with dynamic CSS generation
+  - Proportional spacing adjustment to prevent element overlap
+- **Consecutive Weeks Display**: Shows consecutive weeks a habit goal has been met (e.g., "3w")
+  - Calculated by `get_consecutive_weeks_count()` in `utils.py`
+  - Algorithm: Starts from previous week, counts backwards until first unmet goal
+  - User-configurable via settings page (overrides static config)
+- **Settings Persistence**: Saved/loaded via dedicated save button in settings page
+- **CSS Integration**: Real-time CSS updates for immediate font size preview
 
 ### Letter Filtering
 
@@ -251,12 +261,44 @@ Habits can be organized into lists. The list filtering is handled via URL parame
 
 - Centralized settings page at `/gui/settings` with four main sections:
   - **Language Settings**: Switch between available languages with live preview
-  - **Display Settings**: Configure UI display options including consecutive weeks visibility
+  - **Display Settings**: Configure UI display options (font size, consecutive weeks visibility)
   - **Password Management**: Change user password with validation
   - **Data Management**: Import/export functionality with comprehensive options
 - Export creates JSON files with habits, lists, and completion history
 - Import supports merging with existing data or clearing all existing data first
 - Bulk operations for data clearing using `delete_all_user_habits()` and `delete_all_user_lists()`
+- Display settings use dedicated save button pattern with change detection
+
+## Performance Architecture
+
+### Repository Pattern Implementation
+
+- **Interfaces**: Abstract repository interfaces in `repositories/interfaces.py`
+- **Unit of Work**: Transaction management and repository coordination
+- **Cached Unit of Work**: Query result caching within transaction boundaries
+- **Bulk Operations**: Eliminate N+1 query problems with `get_bulk_checks()` methods
+
+### Performance Optimization System
+
+Configurable via environment variables in `PerformanceConfig`:
+
+- **Caching Layer**: In-memory caching with TTL for expensive calculations
+- **Database Optimization**: Connection pooling, eager loading, composite indexes
+- **Performance Monitoring**: Query timing and endpoint performance tracking
+- **Bulk Query Operations**: Batch processing to reduce database roundtrips
+
+Key environment variables:
+- `ENABLE_CACHING=true` - Enable in-memory caching (default: true)
+- `ENABLE_PERFORMANCE_MONITORING=true` - Track performance metrics (default: true)
+- `ENABLE_BULK_OPERATIONS=true` - Use bulk query optimizations (default: true)
+- `USE_CACHED_UOW=true` - Use cached Unit of Work pattern (default: true)
+
+### Database Indexes
+
+Composite indexes optimize common query patterns:
+- `ix_habits_user_list_deleted_order` - Habit filtering and ordering
+- `ix_checked_habit_day_done` - Completion record lookups
+- `ix_lists_user_deleted_order` - List management queries
 
 ## API Authentication
 
@@ -288,6 +330,10 @@ All API endpoints require email/password in request body (not Bearer token). See
 9. Initialize user language with `init_user_language()` before rendering UI components
 10. Multi-part habit names use "||" separator for storage and `MultiPartNameInput` for editing
 11. Consecutive weeks calculation starts from previous week to avoid current week bias
+12. Display settings use `DisplaySettingsService` with dedicated save buttons (not auto-save)
+13. Font size scaling requires CSS custom properties and proportional spacing adjustments
+14. NiceGUI event handling uses `.on("change", callback)` syntax, not `.on_value_change`
+15. Performance optimizations use Repository Pattern with Unit of Work for transaction management
 
 ## Configuration Settings
 
@@ -295,6 +341,7 @@ Key settings that control application behavior:
 
 ### Display Settings
 - `INDEX_SHOW_CONSECUTIVE_WEEKS`: Controls consecutive weeks display (default: True)
+  - **Note**: User preferences in `app.storage.user["display_settings"]` override this static config
 - `INDEX_SHOW_HABIT_COUNT`: Show habit completion counts (default: False)  
 - `INDEX_SHOW_PRIORITY`: Show habit priority indicators (default: False)
 - `ENABLE_LETTER_FILTER`: Enable letter-based habit filtering (default: True)
