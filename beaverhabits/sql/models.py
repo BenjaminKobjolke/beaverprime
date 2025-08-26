@@ -1,7 +1,7 @@
 import datetime
 from typing import List
 from uuid import UUID, uuid4
-from sqlalchemy import ForeignKey, func, String
+from sqlalchemy import ForeignKey, func, String, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import DateTime
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID
@@ -43,6 +43,11 @@ class HabitList(TimestampMixin, Base):
         back_populates="habit_list", cascade="all, delete-orphan"
     )
 
+    __table_args__ = (
+        # Composite index for user lists queries (most common)
+        Index('ix_lists_user_deleted_order', 'user_id', 'deleted', 'order'),
+    )
+
 class Habit(TimestampMixin, Base):
     """Habit model with checked records"""
     __tablename__ = "habits"
@@ -62,6 +67,15 @@ class Habit(TimestampMixin, Base):
         back_populates="habit", cascade="all, delete-orphan"
     )
 
+    __table_args__ = (
+        # Most common query: user habits by list and deleted status
+        Index('ix_habits_user_list_deleted_order', 'user_id', 'list_id', 'deleted', 'order'),
+        # Query for habits without list (list_id IS NULL)
+        Index('ix_habits_user_deleted_order', 'user_id', 'deleted', 'order'),
+        # For habit lookup and updates
+        Index('ix_habits_id_user', 'id', 'user_id'),
+    )
+
 class CheckedRecord(TimestampMixin, Base):
     """Record of habit completion status for a specific day"""
     __tablename__ = "checked_records"
@@ -73,3 +87,14 @@ class CheckedRecord(TimestampMixin, Base):
     habit_id: Mapped[int] = mapped_column(ForeignKey("habits.id"), index=True)
 
     habit: Mapped["Habit"] = relationship(back_populates="checked_records")
+
+    __table_args__ = (
+        # Most critical: habit checks by date range (for streak calculations)
+        Index('ix_checked_habit_day_done', 'habit_id', 'day', 'done'),
+        # For finding specific day's record
+        Index('ix_checked_habit_day', 'habit_id', 'day'),
+        # For date range queries (weekly, monthly views)
+        Index('ix_checked_day_habit', 'day', 'habit_id'),
+        # Ensure unique habit-day combination
+        Index('ix_checked_unique_habit_day', 'habit_id', 'day', unique=True),
+    )

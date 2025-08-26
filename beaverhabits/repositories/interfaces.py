@@ -7,7 +7,7 @@ enabling dependency inversion and making the system more testable and flexible.
 
 from abc import ABC, abstractmethod
 from datetime import date
-from typing import List, Optional
+from typing import List, Optional, Dict
 from uuid import UUID
 
 from beaverhabits.sql.models import Habit, HabitList, CheckedRecord, User
@@ -60,6 +60,16 @@ class IHabitRepository(ABC):
     @abstractmethod
     async def delete_all_user_habits(self, user: User) -> None:
         """Delete all habits for a user."""
+        pass
+    
+    @abstractmethod
+    async def get_bulk_checks(self, habits: List[Habit], start_date: date, end_date: date) -> Dict[int, List[CheckedRecord]]:
+        """Get completion records for multiple habits in a single query."""
+        pass
+    
+    @abstractmethod
+    async def get_user_habits_with_recent_checks(self, user: User, days: int = 30, list_id: Optional[int] = None) -> List[Habit]:
+        """Get user habits with their recent completion records pre-loaded."""
         pass
 
 

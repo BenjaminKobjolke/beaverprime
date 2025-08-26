@@ -6,12 +6,12 @@ using SQLAlchemy for data persistence operations.
 """
 
 import contextlib
-from datetime import date
-from typing import List, Optional
+from datetime import date, timedelta
+from typing import List, Optional, Dict
 from uuid import UUID
 
-from sqlalchemy import select, update
-from sqlalchemy.orm import joinedload
+from sqlalchemy import select, update, and_, or_
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from beaverhabits.logging import logger
@@ -181,6 +181,69 @@ class SQLAlchemyHabitRepository(IHabitRepository):
         await self._session.flush()
         count = result.rowcount
         logger.info(f"[Repository] Marked {count} habits as deleted for user {user.id}")
+    
+    async def get_bulk_checks(self, habits: List[Habit], start_date: date, end_date: date) -> Dict[int, List[CheckedRecord]]:
+        """Get completion records for multiple habits in a single query."""
+        if not habits:
+            return {}
+        
+        habit_ids = [habit.id for habit in habits]
+        stmt = select(CheckedRecord).where(
+            and_(
+                CheckedRecord.habit_id.in_(habit_ids),
+                CheckedRecord.day >= start_date,
+                CheckedRecord.day <= end_date
+            )
+        ).order_by(CheckedRecord.habit_id, CheckedRecord.day)
+        
+        result = await self._session.execute(stmt)
+        records = result.scalars().all()
+        
+        # Group records by habit_id
+        bulk_checks = {}
+        for record in records:
+            if record.habit_id not in bulk_checks:
+                bulk_checks[record.habit_id] = []
+            bulk_checks[record.habit_id].append(record)
+        
+        # Ensure all habit IDs have an entry (even if empty)
+        for habit_id in habit_ids:
+            if habit_id not in bulk_checks:
+                bulk_checks[habit_id] = []
+        
+        logger.info(f"[Repository] Bulk loaded checks for {len(habit_ids)} habits, {len(records)} total records")
+        return bulk_checks
+    
+    async def get_user_habits_with_recent_checks(self, user: User, days: int = 30, list_id: Optional[int] = None) -> List[Habit]:
+        """Get user habits with their recent completion records pre-loaded."""
+        # Calculate date range for recent checks
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days)
+        
+        # Build base query with optimized eager loading
+        stmt = select(Habit).options(
+            # Load only recent checked records to reduce memory usage
+            selectinload(Habit.checked_records).where(
+                and_(
+                    CheckedRecord.day >= start_date,
+                    CheckedRecord.day <= end_date
+                )
+            )
+        ).where(
+            Habit.user_id == user.id,
+            Habit.deleted == False
+        )
+        
+        # Add list filtering if specified
+        if list_id is not None:
+            stmt = stmt.where(Habit.list_id == list_id)
+        
+        stmt = stmt.order_by(Habit.order)
+        result = await self._session.execute(stmt)
+        habits = list(result.unique().scalars())
+        
+        logger.info(f"[Repository] Loaded {len(habits)} habits with {days} days of recent checks")
+        return habits
 
 
 class SQLAlchemyListRepository(IListRepository):

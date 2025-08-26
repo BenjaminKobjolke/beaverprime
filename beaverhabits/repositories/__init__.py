@@ -13,6 +13,7 @@ from .sqlalchemy_repositories import (
     SQLAlchemyUserRepository,
     SQLAlchemyUnitOfWork
 )
+from .cached_unit_of_work import CachedSQLAlchemyUnitOfWork
 
 __all__ = [
     # Interfaces
@@ -25,4 +26,5 @@ __all__ = [
     'SQLAlchemyListRepository',
     'SQLAlchemyUserRepository', 
     'SQLAlchemyUnitOfWork',
+    'CachedSQLAlchemyUnitOfWork',
 ]
