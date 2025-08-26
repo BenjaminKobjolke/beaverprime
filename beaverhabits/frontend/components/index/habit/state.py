@@ -4,7 +4,8 @@ from beaverhabits.sql.models import Habit
 from beaverhabits.api.models import HabitSorting, HabitUpdateResponse
 from beaverhabits.logging import logger
 from beaverhabits.app.crud import get_habit_checks
-from .utils import get_week_ticks, get_last_week_completion, should_check_last_week, get_habit_priority
+from .utils import get_week_ticks, get_last_week_completion, should_check_last_week
+from .list import calculate_habit_priority
 
 async def get_habit_state(habit: Habit, today: datetime.date) -> HabitUpdateResponse:
     """Calculate the current state of a habit including color and sorting info."""
@@ -12,7 +13,7 @@ async def get_habit_state(habit: Habit, today: datetime.date) -> HabitUpdateResp
     week_ticks, _ = await get_week_ticks(habit, today)
     is_completed = habit.weekly_goal and week_ticks >= habit.weekly_goal
     last_week_complete = await get_last_week_completion(habit, today)
-    priority = await get_habit_priority(habit, [today])
+    priority = await calculate_habit_priority(habit, is_completed)
 
     # Get today's record
     records = await get_habit_checks(habit.id, habit.user_id)
@@ -40,7 +41,6 @@ async def get_habit_state(habit: Habit, today: datetime.date) -> HabitUpdateResp
     # Calculate color based on state and completion
     if state == "skipped":
         color = settings.HABIT_COLOR_SKIPPED
-        priority = 3  # Lower priority = shown last
     else:
         # Calculate color based on completion and creation date
         if not should_check_last_week(habit, today):

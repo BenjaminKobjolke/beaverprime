@@ -25,7 +25,7 @@ window.sortHabits = function() {
         debugLog(`Comparing status: ${a.getAttribute('data-name')}=${statusA} vs ${b.getAttribute('data-name')}=${statusB}`);
         if (statusA !== statusB) return statusA.localeCompare(statusB);
         
-        // Then by priority (0=no checks (first), 1=partial (second), 2=skipped (third), 3=completed (last))
+        // Then by priority (0=not set (first), 2=skipped (third), 3=completed (second-to-last), 4=weekly goal completed (last))
         const priorityA = parseInt(a.getAttribute('data-priority'));
         const priorityB = parseInt(b.getAttribute('data-priority'));
         debugLog(`Comparing priorities: ${a.getAttribute('data-name')}=${priorityA} vs ${b.getAttribute('data-name')}=${priorityB}`);
