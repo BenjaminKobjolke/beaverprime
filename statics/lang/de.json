@@ -45,9 +45,9 @@
     "note_placeholder": "Beschreibung oder Notiz für diese Gewohnheit eingeben...",
     "note_too_long": "Notiz darf nicht länger als 2000 Zeichen sein",
     "url_label": "Referenz-URL",
-    "url_placeholder": "Referenz-URL eingeben (z.B. https://beispiel.de)",
+    "url_placeholder": "URL oder App-Link eingeben (z.B. https://beispiel.de, obsidian://notiz)",
     "url_too_long": "URL darf nicht länger als 500 Zeichen sein",
-    "url_invalid_format": "URL muss mit http://, https:// oder ftp:// beginnen",
+    "url_invalid_format": "URL muss dem Format 'protokoll://pfad' folgen (z.B. https://beispiel.de, app://link)",
     "details": "Details"
   },
   "lists": {

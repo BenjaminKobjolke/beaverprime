@@ -46,9 +46,9 @@
     "note_placeholder": "Enter a description or note for this habit...",
     "note_too_long": "Note cannot exceed 2000 characters",
     "url_label": "Reference URL",
-    "url_placeholder": "Enter a reference URL (e.g., https://example.com)",
+    "url_placeholder": "Enter a URL or app link (e.g., https://example.com, obsidian://note)",
     "url_too_long": "URL cannot exceed 500 characters",
-    "url_invalid_format": "URL must start with http://, https://, or ftp://",
+    "url_invalid_format": "URL must follow the format 'protocol://path' (e.g., https://example.com, app://link)",
     "details": "Details"
   },
   "lists": {

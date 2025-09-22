@@ -257,9 +257,27 @@ class HabitUrlInput(ui.input):
     def _validate(self, value: str) -> Optional[str]:
         if value and len(value) > 500:
             return t("habits.url_too_long")
-        # Basic URL validation
-        if value and not value.startswith(('http://', 'https://', 'ftp://')):
+        # General URL/link validation - allow any protocol format
+        if value and not self._is_valid_link(value):
             return t("habits.url_invalid_format")
+
+    def _is_valid_link(self, value: str) -> bool:
+        """Check if value follows the general pattern 'protocol://something'."""
+        if not value:
+            return True
+
+        # Check for general pattern: some_text://some_text
+        # Must contain :// and have at least one character before and after
+        if '://' not in value:
+            return False
+
+        parts = value.split('://', 1)
+        if len(parts) != 2:
+            return False
+
+        protocol, path = parts
+        # Protocol and path must both be non-empty
+        return len(protocol.strip()) > 0 and len(path.strip()) > 0
 
     def get_value(self) -> str:
         return self.value or ""
