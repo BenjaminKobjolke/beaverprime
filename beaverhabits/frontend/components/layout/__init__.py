@@ -17,6 +17,7 @@ from beaverhabits.services.display_settings_service import init_display_settings
 from .header import add_meta_tags, add_analytics, add_all_scripts
 from .menu import list_selector, menu_component
 from .utils import get_page_title
+from .back_button import back_button
 
 @asynccontextmanager
 async def layout(
@@ -52,6 +53,9 @@ async def layout(
             with left_container:
                 # Show title on all pages except main /gui page
                 if path != settings.GUI_MOUNT_PATH:
+                    # Add back button before the title
+                    back_button()
+
                     page_title = get_page_title(path, title)
                     # Use smaller font size for habit pages to accommodate long habit names
                     font_size = "text-lg" if "/habits/" in path else "text-2xl"

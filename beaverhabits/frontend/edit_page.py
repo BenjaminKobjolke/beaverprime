@@ -1,15 +1,7 @@
 from nicegui import ui
 
 from beaverhabits.frontend import components
-from beaverhabits.frontend.components import (
-    HabitAddButton,
-    HabitDeleteButton,
-    HabitNameInput,
-    HabitSaveButton,
-    HabitStarCheckbox,
-    WeeklyGoalInput,
-    MultiPartNameInput,
-)
+from beaverhabits.frontend.components.habit.habit_edit_form import habit_edit_form
 from beaverhabits.frontend.layout import layout
 from beaverhabits.sql.models import Habit, HabitList
 from beaverhabits.app.crud import get_user_lists, get_user_habits, create_habit, update_habit
@@ -24,50 +16,16 @@ async def edit_ui(habits: list[Habit], lists: list[HabitList], user: User):
     active_habits.sort(key=lambda h: h.order)
 
     for item in active_habits:
-        with ui.card().classes("w-full p-4 mx-0 habit-edit-card") as card:
-            # Add habit ID and name to the card for scrolling and filtering
-            card.props(f'data-habit-id="{item.id}" data-habit-name="{item.name}"')
-            
-            with ui.column().classes("w-full gap-4"):
-                # First line: Name (full width)
-                name_input = MultiPartNameInput(initial_value=item.name, habit=item)
-
-                # Second line: Weekly Goal
-                with ui.row().classes("items-center gap-2"):
-                    weekly_goal = WeeklyGoalInput(item, None)
-                    ui.label(t("habits.times_per_week"))
-
-                # Third line: List Selection (full width)
-                no_list_label = t("habits.no_list")
-                list_options = [{"label": no_list_label, "value": None}] + [
-                    {"label": list.name, "value": list.id} for list in lists if not list.deleted
-                ]
-                name_to_id = {no_list_label: None}
-                name_to_id.update({opt["label"]: opt["value"] for opt in list_options[1:]})
-                options = list(name_to_id.keys())
-                current_name = next(
-                    (name for name, id in name_to_id.items() if id == item.list_id),
-                    no_list_label
-                )
-                list_select = ui.select(
-                    options=options,
-                    value=current_name,
-                    on_change=lambda e, h=item: (setattr(h, 'list_id', name_to_id[e.value]))
-                ).props('dense outlined options-dense').classes("w-full")
-                list_select.bind_value_from(lambda: next(
-                    (name for name, id in name_to_id.items() if id == item.list_id),
-                    no_list_label
-                ))
-
-                # Fourth line: Save button on left, Star and Delete on right
-                with ui.row().classes("w-full justify-between items-center"):
-                    # Left side - Save button
-                    save = HabitSaveButton(item, weekly_goal, name_input, edit_ui.refresh)
-                    
-                    # Right side - Star and Delete buttons
-                    with ui.row().classes("gap-2 items-center"):
-                        star = HabitStarCheckbox(item, edit_ui.refresh)
-                        delete = HabitDeleteButton(item, edit_ui.refresh)
+        await habit_edit_form(
+            habit=item,
+            lists=lists,
+            user=user,
+            refresh_callback=edit_ui.refresh,
+            show_card=True,
+            show_filter_data=True,
+            collapsible=False,  # Not collapsible on bulk edit page
+            collapsed_by_default=False
+        )
 
 
 async def edit_page_ui(habits: list[Habit], user: User):

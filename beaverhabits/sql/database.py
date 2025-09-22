@@ -39,15 +39,31 @@ async def create_db_and_tables():
     # Create database if it doesn't exist
     root_url = f"mysql+aiomysql://{db_user}{db_password_part}{db_host}:{db_port}"
     root_engine = create_async_engine(root_url)
-    
+
     async with root_engine.begin() as conn:
         await conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {db_name}"))
-    
+
     await root_engine.dispose()
-    
+
     # Create tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    # Run migrations
+    await run_migrations()
+
+async def run_migrations():
+    """Run database migrations using the new migration system."""
+    from beaverhabits.sql.migrations import run_all_migrations
+
+    try:
+        async with async_session_maker() as session:
+            await run_all_migrations(session)
+    except Exception as e:
+        # Migration errors are logged but don't crash the app
+        print(f"Migration error: {e}")
+        raise
+
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     """Get async database session"""

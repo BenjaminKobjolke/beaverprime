@@ -2,7 +2,7 @@ from .badges import HabitTotalBadge, IndexBadge
 from .buttons import HabitEditButton, HabitDeleteButton, HabitAddButton
 from .cards import HabitOrderCard
 from .checkbox import HabitCheckBox, CalendarCheckBox, HabitStarCheckbox, habit_tick, note_tick
-from .inputs import WeeklyGoalInput, HabitNameInput, HabitDateInput
+from .inputs import WeeklyGoalInput, HabitNameInput, HabitDateInput, HabitNoteInput, HabitUrlInput
 
 __all__ = [
     'HabitTotalBadge',
@@ -19,4 +19,6 @@ __all__ = [
     'WeeklyGoalInput',
     'HabitNameInput',
     'HabitDateInput',
+    'HabitNoteInput',
+    'HabitUrlInput',
 ]

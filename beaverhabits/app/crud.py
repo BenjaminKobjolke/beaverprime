@@ -74,7 +74,8 @@ async def update_list(list_id: int, user_id: UUID, name: Optional[str] = None,
         return habit_list
 
 # Habit operations
-async def create_habit(user: User, name: str, list_id: Optional[int] = None, order: int = 0) -> Optional[Habit]:
+async def create_habit(user: User, name: str, list_id: Optional[int] = None, order: int = 0,
+                      note: Optional[str] = None, url: Optional[str] = None) -> Optional[Habit]:
     async with get_async_session_context() as session:
         if list_id is not None:
             # Verify list belongs to user
@@ -90,7 +91,7 @@ async def create_habit(user: User, name: str, list_id: Optional[int] = None, ord
                 #l ogger.warning(f"[CRUD] List {list_id} not found for user {user.id}")
                 return None
             
-        habit = Habit(name=name, order=order, list_id=list_id, user_id=user.id)
+        habit = Habit(name=name, order=order, list_id=list_id, user_id=user.id, note=note, url=url)
         session.add(habit)
         await session.commit()
         await session.refresh(habit)
@@ -114,10 +115,11 @@ async def get_user_habits(user: User, list_id: Optional[int] = None) -> List[Hab
         result = await session.execute(stmt)
         return list(result.unique().scalars())
 
-async def update_habit(habit_id: int, user_id: UUID, name: Optional[str] = None, 
+async def update_habit(habit_id: int, user_id: UUID, name: Optional[str] = None,
                       order: Optional[int] = None, list_id: Optional[int] = None,
                       weekly_goal: Optional[int] = None, deleted: bool = False,
-                      star: Optional[bool] = None) -> Optional[Habit]:
+                      star: Optional[bool] = None, note: Optional[str] = None,
+                      url: Optional[str] = None) -> Optional[Habit]:
     async with get_async_session_context() as session:
         stmt = select(Habit).where(Habit.id == habit_id, Habit.user_id == user_id)
         result = await session.execute(stmt)
@@ -142,6 +144,10 @@ async def update_habit(habit_id: int, user_id: UUID, name: Optional[str] = None,
                 habit.weekly_goal = weekly_goal
             if star is not None:
                 habit.star = star
+            if note is not None:
+                habit.note = note
+            if url is not None:
+                habit.url = url
             if deleted:
                 habit.deleted = True
             await session.commit()

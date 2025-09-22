@@ -19,9 +19,11 @@ from beaverhabits.frontend.css import (
     HIDE_TIMELINE_TITLE,
 )
 from beaverhabits.frontend.layout import layout, redirect
+from beaverhabits.frontend.components.habit.habit_edit_form import habit_edit_form
 from beaverhabits.sql.models import Habit, CheckedRecord
-from beaverhabits.app.crud import get_habit_checks
+from beaverhabits.app.crud import get_habit_checks, get_user_lists
 from beaverhabits.app.db import User
+from beaverhabits.services.i18n import t
 
 WEEKS_TO_DISPLAY = 15
 
@@ -49,17 +51,20 @@ def card(link: str | None = None, padding: float = 3):
 
 
 @ui.refreshable
-async def habit_page(today: datetime.date, habit: Habit):
+async def habit_page(today: datetime.date, habit: Habit, user: User):
     # Get all checked records for this habit
     records = await get_habit_checks(habit.id, habit.user_id)
-    
+
     # Get notes and sort them by date
     notes = [r for r in records if r.text]
     notes.sort(key=lambda x: x.day, reverse=True)
-    
+
     # Get completed days
     completed_days = [r.day for r in records if r.done]
-    
+
+    # Get lists for edit form
+    lists = await get_user_lists(user)
+
     # https://tailwindcss.com/docs/responsive-design#container-size-reference
     masony = "md:grid-cols-2" if notes else ""
 
@@ -70,6 +75,33 @@ async def habit_page(today: datetime.date, habit: Habit):
             target = f"habits/{habit.id}/heatmap"
 
             with grid():
+                # Edit Settings Section (collapsible, folded by default)
+                await habit_edit_form(
+                    habit,
+                    lists,
+                    user,
+                    habit_page.refresh,
+                    show_card=False,
+                    collapsible=True,
+                    collapsed_by_default=True
+                )
+
+                # Habit Details Section (show note and URL if they exist)
+                if habit.note or habit.url:
+                    with card():
+                        card_title(t("habits.details"), "#")
+                        ui.space().classes("h-2")
+
+                        if habit.note:
+                            with ui.column().classes("w-full gap-1"):
+                                ui.label(t("habits.note_label")).classes("text-sm font-semibold")
+                                ui.label(habit.note).classes("text-sm whitespace-pre-wrap")
+
+                        if habit.url:
+                            with ui.column().classes("w-full gap-1 mt-2"):
+                                ui.label(t("habits.url_label")).classes("text-sm font-semibold")
+                                ui.link(habit.url, habit.url, new_tab=True).classes("text-sm text-blue-600 underline")
+
                 with card():
                     HabitDateInput(today, habit)
 
@@ -102,4 +134,4 @@ async def habit_page_ui(today: datetime.date, habit: Habit, user: User | None = 
     ui.add_css(HIDE_TIMELINE_TITLE)
 
     async with layout(title=habit.name, user=user):
-        await habit_page(today, habit)
+        await habit_page(today, habit, user)

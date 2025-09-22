@@ -15,6 +15,7 @@
   "habits": {
     "add_new_habit": "Neue Gewohnheit hinzufügen",
     "edit_habit": "Gewohnheit bearbeiten",
+    "edit_settings": "Einstellungen bearbeiten",
     "habit_name": "Name der Gewohnheit",
     "habit_name_placeholder": "Name der Gewohnheit eingeben",
     "habit_part_placeholder": "Gewohnheitsteil eingeben",
@@ -39,7 +40,15 @@
     "error_creating_habit": "Fehler beim Erstellen der Gewohnheit: {error}",
     "error_updating_habit": "Fehler beim Aktualisieren der Gewohnheit: {error}",
     "habit_not_found": "Gewohnheit mit ID {id} nicht gefunden.",
-    "no_habits_to_export": "Keine Gewohnheiten zum Exportieren"
+    "no_habits_to_export": "Keine Gewohnheiten zum Exportieren",
+    "note_label": "Notiz",
+    "note_placeholder": "Beschreibung oder Notiz für diese Gewohnheit eingeben...",
+    "note_too_long": "Notiz darf nicht länger als 2000 Zeichen sein",
+    "url_label": "Referenz-URL",
+    "url_placeholder": "Referenz-URL eingeben (z.B. https://beispiel.de)",
+    "url_too_long": "URL darf nicht länger als 500 Zeichen sein",
+    "url_invalid_format": "URL muss mit http://, https:// oder ftp:// beginnen",
+    "details": "Details"
   },
   "lists": {
     "manage_lists": "Listen verwalten",

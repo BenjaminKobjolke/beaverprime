@@ -223,3 +223,43 @@ class HabitDateInput(ui.date):
         self.props(f"default-year-month={day.strftime(MONTH_MASK)}")
         await habit_tick(self.habit, day, bool(value))
         self.value = self._tick_days
+
+
+class HabitNoteInput(ui.textarea):
+    def __init__(self, habit: Habit, refresh: Optional[Callable] = None) -> None:
+        super().__init__(
+            value=habit.note or "",
+            placeholder=t("habits.note_placeholder")
+        )
+        self.habit = habit
+        self.props("dense outlined")
+        self.classes("w-full")
+
+    def _validate(self, value: str) -> Optional[str]:
+        if value and len(value) > 2000:
+            return t("habits.note_too_long")
+
+    def get_value(self) -> str:
+        return self.value or ""
+
+
+class HabitUrlInput(ui.input):
+    def __init__(self, habit: Habit, refresh: Optional[Callable] = None) -> None:
+        super().__init__(
+            value=habit.url or "",
+            placeholder=t("habits.url_placeholder")
+        )
+        self.habit = habit
+        self.validation = self._validate
+        self.props("dense outlined")
+        self.classes("w-full")
+
+    def _validate(self, value: str) -> Optional[str]:
+        if value and len(value) > 500:
+            return t("habits.url_too_long")
+        # Basic URL validation
+        if value and not value.startswith(('http://', 'https://', 'ftp://')):
+            return t("habits.url_invalid_format")
+
+    def get_value(self) -> str:
+        return self.value or ""

@@ -16,6 +16,7 @@
   "habits": {
     "add_new_habit": "Add New Habit",
     "edit_habit": "Edit Habit",
+    "edit_settings": "Edit Settings",
     "habit_name": "Habit Name",
     "habit_name_placeholder": "Enter habit name",
     "habit_part_placeholder": "Enter habit part",
@@ -40,7 +41,15 @@
     "error_creating_habit": "Error creating habit: {error}",
     "error_updating_habit": "Error updating habit: {error}",
     "habit_not_found": "Habit with ID {id} not found.",
-    "no_habits_to_export": "No habits to export"
+    "no_habits_to_export": "No habits to export",
+    "note_label": "Note",
+    "note_placeholder": "Enter a description or note for this habit...",
+    "note_too_long": "Note cannot exceed 2000 characters",
+    "url_label": "Reference URL",
+    "url_placeholder": "Enter a reference URL (e.g., https://example.com)",
+    "url_too_long": "URL cannot exceed 500 characters",
+    "url_invalid_format": "URL must start with http://, https://, or ftp://",
+    "details": "Details"
   },
   "lists": {
     "manage_lists": "Manage Lists",

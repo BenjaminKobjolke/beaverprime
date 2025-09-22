@@ -58,6 +58,8 @@ class Habit(TimestampMixin, Base):
     weekly_goal: Mapped[int | None] = mapped_column(default=0)
     deleted: Mapped[bool] = mapped_column(default=False)
     star: Mapped[bool] = mapped_column(default=False)
+    note: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     list_id: Mapped[int | None] = mapped_column(ForeignKey("lists.id"), index=True, nullable=True)
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)
 
