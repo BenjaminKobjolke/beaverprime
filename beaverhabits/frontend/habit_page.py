@@ -20,6 +20,7 @@ from beaverhabits.frontend.css import (
 )
 from beaverhabits.frontend.layout import layout, redirect
 from beaverhabits.frontend.components.habit.habit_edit_form import habit_edit_form
+from beaverhabits.frontend import icons
 from beaverhabits.sql.models import Habit, CheckedRecord
 from beaverhabits.app.crud import get_habit_checks, get_user_lists
 from beaverhabits.app.db import User
@@ -100,7 +101,40 @@ async def habit_page(today: datetime.date, habit: Habit, user: User):
                         if habit.url:
                             with ui.column().classes("w-full gap-1 mt-2"):
                                 ui.label(t("habits.url_label")).classes("text-sm font-semibold")
-                                ui.link(habit.url, habit.url, new_tab=True).classes("text-sm text-blue-600 underline")
+                                with ui.row().classes("items-center gap-2"):
+                                    ui.link(habit.url, habit.url, new_tab=True).classes("text-sm text-blue-600 underline")
+                                    # Copy button
+                                    copy_btn = ui.button(icon=icons.COPY)
+                                    copy_btn.props('flat round size=sm')
+                                    copy_btn.classes('text-gray-500 hover:text-gray-700')
+                                    copy_btn.tooltip('Copy URL to clipboard')
+                                    def copy_url_to_clipboard(url):
+                                        # Escape the URL for safe JavaScript injection
+                                        escaped_url = url.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
+                                        ui.run_javascript(f'''
+                                            navigator.clipboard.writeText("{escaped_url}").then(() => {{
+                                                // Show success notification
+                                                if (window.showNotification) {{
+                                                    window.showNotification("URL copied to clipboard", "positive");
+                                                }} else {{
+                                                    console.log("URL copied to clipboard: {escaped_url}");
+                                                }}
+                                            }}).catch(err => {{
+                                                console.error("Failed to copy URL: ", err);
+                                                // Fallback for older browsers
+                                                const textArea = document.createElement("textarea");
+                                                textArea.value = "{escaped_url}";
+                                                document.body.appendChild(textArea);
+                                                textArea.select();
+                                                document.execCommand("copy");
+                                                document.body.removeChild(textArea);
+                                                if (window.showNotification) {{
+                                                    window.showNotification("URL copied to clipboard", "positive");
+                                                }}
+                                            }});
+                                        ''')
+
+                                    copy_btn.on('click', lambda url=habit.url: copy_url_to_clipboard(url))
 
                 with card():
                     HabitDateInput(today, habit)
