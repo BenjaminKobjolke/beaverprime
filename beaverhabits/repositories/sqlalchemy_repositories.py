@@ -28,9 +28,11 @@ class SQLAlchemyHabitRepository(IHabitRepository):
     
     async def get_by_id(self, habit_id: int) -> Optional[Habit]:
         """Get a habit by its ID."""
-        stmt = select(Habit).where(Habit.id == habit_id, Habit.deleted == False)
+        stmt = select(Habit).options(
+            joinedload(Habit.checked_records)
+        ).where(Habit.id == habit_id, Habit.deleted == False)
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        return result.unique().scalar_one_or_none()
     
     async def get_user_habits(self, user: User, list_id: Optional[int] = None) -> List[Habit]:
         """Get all habits for a user, optionally filtered by list ID."""
