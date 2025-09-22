@@ -23,7 +23,7 @@ async def ensure_migrations_table_exists(session: AsyncSession) -> None:
         # Table doesn't exist, create it
         create_table_sql = text("""
             CREATE TABLE migrations (
-                id VARCHAR(255) PRIMARY KEY,
+                id VARCHAR(191) PRIMARY KEY,
                 applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
