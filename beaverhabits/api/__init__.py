@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from fastapi.routing import APIRouter
 
-from beaverhabits.api.routes import habits, export, lists
+from beaverhabits.api.routes import habits, export, lists, auth
 
 # Create the main API router
 api_router = APIRouter()
 
 # Include all route modules
+api_router.include_router(auth.router)
 api_router.include_router(habits.router)
 api_router.include_router(export.router)
 api_router.include_router(lists.router)
